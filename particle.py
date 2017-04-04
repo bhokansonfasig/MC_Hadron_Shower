@@ -18,34 +18,15 @@ class Particle:
                 if isinstance(val,list) and len(val)==3:
                     self.momentum = [float(p) for p in val]
                 elif isinstance(val,float) or isinstance(val,int):
-                    momentum = val
-                    if ("theta" in kwargs.keys()) and ("phi" in kwargs.keys()):
-                        theta = kwargs["theta"]
-                        phi = kwargs["phi"]
-                    elif ("zenith" in kwargs.keys()) and ("azimuth" in kwargs.keys()):
-                        theta = pi - kwargs["zenith"]
-                        phi = kwargs["azimuth"] - pi
-                    else:
-                        raise ParticleError("Must define angle if magnitude of momentum is given")
-                    self.momentum[0] = momentum*sin(theta)*cos(phi)
-                    self.momentum[1] = momentum*sin(theta)*sin(phi)
-                    self.momentum[2] = momentum*cos(theta)
+                    self.buildMomentumFromScalar(val,"momentum",kwargs)
             if "vel" in key:
                 if isinstance(val,list) and len(val)==3:
                     self.momentum = [v*self.mass/c for v in val]
                 elif isinstance(val,float) or isinstance(val,int):
-                    momentum = val*self.mass/c
-                    if ("theta" in kwargs.keys()) and ("phi" in kwargs.keys()):
-                        theta = kwargs["theta"]
-                        phi = kwargs["phi"]
-                    elif ("zenith" in kwargs.keys()) and ("azimuth" in kwargs.keys()):
-                        theta = pi - kwargs["zenith"]
-                        phi = kwargs["azimuth"] - pi
-                    else:
-                        raise ParticleError("Must define angle if magnitude of velocity is given")
-                    self.momentum[0] = momentum*sin(theta)*cos(phi)
-                    self.momentum[1] = momentum*sin(theta)*sin(phi)
-                    self.momentum[2] = momentum*cos(theta)
+                    self.buildMomentumFromScalar(val,"velocity",kwargs)
+            if key=="energy" or key=="E":
+                self.buildMomentumFromScalar(val,"energy",kwargs)
+
 
     def identifyType(self,particleType):
         """Sets particle attributes based on type name"""
@@ -108,6 +89,29 @@ class Particle:
             raise ParticleError("Unrecognized particle type "+str(particleType))
 
 
+    def buildMomentumFromScalar(self,scalar,kind,otherArgs):
+        """Sets particle momentum based on scalar value of momentum, velocity, or energy"""
+        if kind=="momentum":
+            momentum = scalar
+        elif kind=="velocity":
+            momentum = scalar*self.mass/c
+        elif kind=="energy":
+            momentum = sqrt(scalar**2 - self.mass**2)
+        if ("theta" in otherArgs.keys()) and ("phi" in otherArgs.keys()):
+            theta = otherArgs["theta"]
+            phi = otherArgs["phi"]
+        elif ("zenith" in otherArgs.keys()) and ("azimuth" in otherArgs.keys()):
+            theta = pi - otherArgs["zenith"]
+            phi = otherArgs["azimuth"] - pi
+        else:
+            if not("energy" in kind):
+                kind = "magnitude of "+kind
+            raise ParticleError("Must define angle if "+kind+" is given")
+        self.momentum[0] = momentum*sin(theta)*cos(phi)
+        self.momentum[1] = momentum*sin(theta)*sin(phi)
+        self.momentum[2] = momentum*cos(theta)
+
+
     def __getattr__(self,name):
         if name=="theta":
             p_mag = sqrt(self.momentum[0]**2+self.momentum[1]**2+self.momentum[2]**2)
@@ -125,4 +129,8 @@ class Particle:
             while az>2*pi:
                 az -= 2*pi
             return az
+        if name=="energy":
+            return sqrt(self.mass**2+self.momentum**2)
+        if name=="kinetic" or name=="ke":
+            return self.energy-self.mass
 
