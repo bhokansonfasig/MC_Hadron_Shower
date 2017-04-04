@@ -96,6 +96,9 @@ class Particle:
         elif kind=="velocity":
             momentum = scalar*self.mass/c
         elif kind=="energy":
+            if scalar<self.mass:
+                raise ParticleError("Particle energy less than mass ("\
+                                    +str(scalar)+"<"+str(self.mass)+")")
             momentum = sqrt(scalar**2 - self.mass**2)
         if ("theta" in otherArgs.keys()) and ("phi" in otherArgs.keys()):
             theta = otherArgs["theta"]
@@ -130,7 +133,8 @@ class Particle:
                 az -= 2*pi
             return az
         if name=="energy":
-            return sqrt(self.mass**2+self.momentum**2)
+            p_mag = sqrt(self.momentum[0]**2+self.momentum[1]**2+self.momentum[2]**2)
+            return sqrt(self.mass**2+p_mag**2)
         if name=="kinetic" or name=="ke":
             return self.energy-self.mass
 
