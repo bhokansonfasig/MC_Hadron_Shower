@@ -1,5 +1,6 @@
 """Code for particle class"""
-from constants import c
+from constants import c, pi
+from numpy import sqrt,sin,cos,arccos,arctan
 
 class ParticleError(Exception):
     pass
@@ -13,10 +14,38 @@ class Particle:
         for key,val in kwargs.items():
             if "pos" in key and len(val)==3:
                 self.position = [float(x) for x in val]
-            if "mom" in key and len(val)==3:
-                self.momentum = [float(p) for p in val]
-            if "vel" in key and len(val)==3:
-                self.momentum = [v*self.mass/c for v in val]
+            if "mom" in key:
+                if isinstance(val,list) and len(val)==3:
+                    self.momentum = [float(p) for p in val]
+                elif isinstance(val,float) or isinstance(val,int):
+                    momentum = val
+                    if ("theta" in kwargs.keys()) and ("phi" in kwargs.keys()):
+                        theta = kwargs["theta"]
+                        phi = kwargs["phi"]
+                    elif ("zenith" in kwargs.keys()) and ("azimuth" in kwargs.keys()):
+                        theta = pi - kwargs["zenith"]
+                        phi = kwargs["azimuth"] - pi
+                    else:
+                        raise ParticleError("Must define angle if magnitude of momentum is given")
+                    self.momentum[0] = momentum*sin(theta)*cos(phi)
+                    self.momentum[1] = momentum*sin(theta)*sin(phi)
+                    self.momentum[2] = momentum*cos(theta)
+            if "vel" in key:
+                if isinstance(val,list) and len(val)==3:
+                    self.momentum = [v*self.mass/c for v in val]
+                elif isinstance(val,float) or isinstance(val,int):
+                    momentum = val*self.mass/c
+                    if ("theta" in kwargs.keys()) and ("phi" in kwargs.keys()):
+                        theta = kwargs["theta"]
+                        phi = kwargs["phi"]
+                    elif ("zenith" in kwargs.keys()) and ("azimuth" in kwargs.keys()):
+                        theta = pi - kwargs["zenith"]
+                        phi = kwargs["azimuth"] - pi
+                    else:
+                        raise ParticleError("Must define angle if magnitude of velocity is given")
+                    self.momentum[0] = momentum*sin(theta)*cos(phi)
+                    self.momentum[1] = momentum*sin(theta)*sin(phi)
+                    self.momentum[2] = momentum*cos(theta)
 
     def identifyType(self,particleType):
         """Sets particle attributes based on type name"""
@@ -77,4 +106,23 @@ class Particle:
             self.charge = 0
         else:
             raise ParticleError("Unrecognized particle type "+str(particleType))
+
+
+    def __getattr__(self,name):
+        if name=="theta":
+            p_mag = sqrt(self.momentum[0]**2+self.momentum[1]**2+self.momentum[2]**2)
+            if p_mag==0:
+                return 0
+            return arccos(self.momentum[2]/p_mag)
+        if name=="phi":
+            if self.momentum[0]==0:
+                return 0
+            return arctan(self.momentum[1]/self.momentum[0])
+        if name=="zenith":
+            return pi-self.theta
+        if name=="azimuth":
+            az = pi+self.phi
+            while az>2*pi:
+                az -= 2*pi
+            return az
 
