@@ -1,0 +1,7 @@
+# git will ignore the following files:
+
+# unnecessary hidden files
+.DS_store
+
+# pycaches
+**/__pycache__/
