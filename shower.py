@@ -21,3 +21,21 @@ def generateRandomPrimary():
     phi = 0
 
     return Particle(particleType,pos=position,E=energy,theta=theta,phi=phi)
+
+
+def getPropagationLength(particle):
+    """Return a propagation length for the particle"""
+    interactionLength = 1 #m
+    return interactionLength
+
+def propagate(particle):
+    """Propagate the particle"""
+    distance = getPropagationLength(particle)
+    for i in range(len(particle.position)):
+        particle.position[i] += distance * particle.direction[i]
+
+
+def interact(particle,target):
+    """Interact the particle with the target and return the products"""
+    products = [particle,target]
+    return products

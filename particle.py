@@ -116,11 +116,14 @@ class Particle:
 
 
     def __getattr__(self,name):
+        if name=="Pmag":
+            return sqrt(self.momentum[0]**2+self.momentum[1]**2+self.momentum[2]**2)
+        if name=="direction" or name=="dir":
+            return [p/self.Pmag for p in self.momentum]
         if name=="theta":
-            p_mag = sqrt(self.momentum[0]**2+self.momentum[1]**2+self.momentum[2]**2)
-            if p_mag==0:
+            if self.Pmag==0:
                 return 0
-            return arccos(self.momentum[2]/p_mag)
+            return arccos(self.momentum[2]/self.Pmag)
         if name=="phi":
             if self.momentum[0]==0:
                 return 0
@@ -133,8 +136,7 @@ class Particle:
                 az -= 2*pi
             return az
         if name=="energy":
-            p_mag = sqrt(self.momentum[0]**2+self.momentum[1]**2+self.momentum[2]**2)
-            return sqrt(self.mass**2+p_mag**2)
+            return sqrt(self.mass**2+self.Pmag**2)
         if name=="kinetic" or name=="ke":
             return self.energy-self.mass
 
