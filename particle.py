@@ -85,6 +85,10 @@ class Particle:
             self.type = "n0"
             self.mass = 939.56536 #MeV
             self.charge = 0
+        elif particleType.lower()=="nitrogen" or particleType=="N":
+            self.type = "N"
+            self.mass = 0 #MeV
+            self.charge = 7
         else:
             raise ParticleError("Unrecognized particle type "+str(particleType))
 

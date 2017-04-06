@@ -25,7 +25,7 @@ def generateRandomPrimary():
 
 def getPropagationLength(particle):
     """Return a propagation length for the particle"""
-    interactionLength = 1 #m
+    interactionLength = 100 #m
     return interactionLength
 
 def propagate(particle):
@@ -35,7 +35,43 @@ def propagate(particle):
         particle.position[i] += distance * particle.direction[i]
 
 
-def interact(particle,target):
-    """Interact the particle with the target and return the products"""
-    products = [particle,target]
-    return products
+def interact(particle,target=None):
+    """Interact the particle with the target (or decay by default)
+    and return the products"""
+    if target is None:
+        return [particle]
+    else:
+        return [particle,target]
+
+
+def generateShower():
+    """Generates a full hadron shower and returns any muons that reach the surface"""
+    primary = generateRandomPrimary()
+    particles = [primary]
+    finished = False
+    while not(finished):
+        products = []
+        for particle in particles:
+            if particle.type=="p+" or particle.type=="n0":
+                propagate(particle)
+                products.extend(interact(particle,Particle("nitrogen")))
+            elif particle.type=="pi+" or particle.type=="pi-":
+                propagate(particle)
+                products.extend(interact(particle,Particle("nitrogen")))
+            elif particle.type=="mu+" or particle.type=="mu-":
+                propagate(particle)
+                products.extend(interact(particle))
+            else:
+                products.append(particle)
+        particles = products
+        finished = True
+        print("---")
+        for particle in particles:
+            print(particle.type,particle.position)
+        for particle in particles:
+            propagationParticles = ["pi+","pi-","mu+","mu-","p+","n0"]
+            if particle.type in propagationParticles and particle.position[2]>0:
+                finished = False
+                break
+
+
