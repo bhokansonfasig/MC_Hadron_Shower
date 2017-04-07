@@ -29,7 +29,7 @@ def getNextInteraction(particle):
     interacts with after the propagation (decay returns "decay" as target,
     continued propagation returns None as target)"""
     interactionLength = 100 #m
-    if "mu" in particle.type or "pi" in particle.type:
+    if particle.type or "pi" in particle.type:
         target = "decay"
     else:
         if particle.ke<140*3/2:
@@ -120,12 +120,11 @@ def generateShower():
     primary = generateRandomPrimary()
     particles = [primary]
     finished = False
+    propagationParticles = ["pi+","pi-","mu+","mu-","p+","n0"]
     while not(finished):
         products = []
         for particle in particles:
-            if particle.type=="p+" or particle.type=="n0" or \
-               particle.type=="pi+" or particle.type=="pi-" or \
-               particle.type=="mu+" or particle.type=="mu-":
+            if particle.type in propagationParticles:
                 target = propagate(particle)
                 products.extend(interact(particle,target))
             else:
@@ -136,9 +135,12 @@ def generateShower():
         for particle in particles:
             print(particle.type,particle.position)
         for particle in particles:
-            propagationParticles = ["pi+","pi-","mu+","mu-","p+","n0"]
             if particle.type in propagationParticles and particle.position[2]>0:
                 finished = False
                 break
-
+    muons = []
+    for particle in particles:
+        if particle.type=="mu+" or particle.type=="mu-":
+            muons.append(particle)
+    return muons
 
