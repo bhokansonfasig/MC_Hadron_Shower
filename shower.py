@@ -111,10 +111,7 @@ def interact(particle,target=None):
                         Particle("pi0",pos=particle.position,energy=splitEnergy,
                                  theta=particle.theta,phi=particle.phi)]
     else:
-        try:
-            print("Warning: no interaction between",particle.type,"and",target.type)
-        except AttributeError:
-            raise TypeError("Target not a particle")
+        print("Warning: no interaction between",particle.type,"and",target.type)
         return [particle,target]
 
 
