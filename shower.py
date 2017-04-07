@@ -26,10 +26,11 @@ def generateRandomPrimary():
 
 def getNextInteraction(particle):
     """Return a propagation length for the particle and the particle it
-    interacts with after the propagation (decay returns None as target)"""
+    interacts with after the propagation (decay returns "decay" as target,
+    continued propagation returns None as target)"""
     interactionLength = 100 #m
     if "mu" in particle.type or "pi" in particle.type:
-        target = None
+        target = "decay"
     else:
         if particle.ke<140*3/2:
             target = None
@@ -47,9 +48,10 @@ def propagate(particle):
 
 
 def interact(particle,target=None):
-    """Interact the particle with the target (or decay by default)
-    and return the products"""
+    """Interact the particle with the target (or "decay") and return the products"""
     if target is None:
+        return [particle]
+    elif target is "decay":
         if particle.type=="pi+":
             return [Particle("mu+",pos=particle.position,energy=particle.energy,
                              theta=particle.theta,phi=particle.phi),
@@ -109,7 +111,10 @@ def interact(particle,target=None):
                         Particle("pi0",pos=particle.position,energy=splitEnergy,
                                  theta=particle.theta,phi=particle.phi)]
     else:
-        print("Warning: no interaction between",particle.type,"and",target.type)
+        try:
+            print("Warning: no interaction between",particle.type,"and",target.type)
+        except AttributeError:
+            raise TypeError("Target not a particle")
         return [particle,target]
 
 
