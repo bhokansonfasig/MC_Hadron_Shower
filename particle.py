@@ -1,6 +1,8 @@
 """Code for particle class"""
-from constants import c, pi
+from itertools import count
 from numpy import sqrt,sin,cos,arccos,arctan
+from constants import c, pi
+idCounter = count()
 
 class ParticleError(Exception):
     pass
@@ -9,9 +11,12 @@ class Particle:
     """Particle class detailing particle's type, position, motion, etc."""
     def __init__(self,particleType,**kwargs):
         self.identifyType(particleType)
+        self.id = next(idCounter)
         self.position = [0.,0.,0.] #m
         self.momentum = [0.,0.,0.] #MeV
         for key,val in kwargs.items():
+            if key=="id":
+                self.id = val
             if "pos" in key and len(val)==3:
                 self.position = [float(x) for x in val]
             if "mom" in key:
@@ -131,6 +136,8 @@ class Particle:
         if name=="Pmag":
             return sqrt(self.momentum[0]**2+self.momentum[1]**2+self.momentum[2]**2)
         if name=="direction" or name=="dir":
+            if self.Pmag==0:
+                return [0,0,0]
             return [p/self.Pmag for p in self.momentum]
         if name=="theta":
             if self.Pmag==0:

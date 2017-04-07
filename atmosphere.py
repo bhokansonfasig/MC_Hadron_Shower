@@ -1,6 +1,6 @@
 """Atmospheric model code"""
-from particle import Particle
 from random import random
+from particle import Particle
 
 def density(height):
     """Returns the number density (in m^-3) of the atmosphere at a given height"""
