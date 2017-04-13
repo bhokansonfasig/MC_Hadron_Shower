@@ -122,7 +122,7 @@ class Particle:
                 self.type = "N-16"
                 self.mass = 14909.59 #MeV
                 self.charge = 7
-                self.lifetime = 7.13 #s
+                self.lifetime = 10.29 #s
             else:
                 self.type = "N"
                 self.mass = 13047.2 #MeV
@@ -133,23 +133,34 @@ class Particle:
                 self.type = "O-14"
                 self.mass = 13048.92 #MeV
                 self.charge = 8
-                self.lifetime = 70.598 #s
+                self.lifetime = 101.85 #s
             elif "15" in particleType:
                 self.type = "O-15"
                 self.mass = 13975.27 #MeV
                 self.charge = 8
-                self.lifetime = 122.24 #s
+                self.lifetime = 176.4 #s
             else:
                 self.type = "O"
                 self.mass = 14903.3 #MeV
                 self.charge = 8
+                self.lifetime = None
+        elif "fluorine" in particleType.lower() or particleType=="F":
+            if "16" in particleType:
+                self.type = "F-16"
+                self.mass = 14914.59 #MeV
+                self.charge = 9
+                self.lifetime = 1.674e-19 #s
+            else:
+                self.type = "F"
+                self.mass = 17696.9 #MeV
+                self.charge = 9
                 self.lifetime = None
         elif "chlorine" in particleType.lower() or particleType=="Cl":
             if "40" in particleType:
                 self.type = "Cl-40"
                 self.mass = 37232.2 #MeV
                 self.charge = 17
-                self.lifetime = 81.1 #s
+                self.lifetime = 117 #s
             else:
                 self.type = "Cl-35"
                 self.mass = 32573.28 #MeV
