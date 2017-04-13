@@ -1,5 +1,5 @@
 """Atmospheric model code"""
-from random import random
+import numpy as np
 from particle import Particle
 
 def density(height):
@@ -8,7 +8,7 @@ def density(height):
 
 def getAtmosphericNucleus(position):
     """Returns an atomic nucleus based on the atmospheric composition"""
-    atomSeed = random()
+    atomSeed = np.random.random_sample()
     if atomSeed>=1-.78: #78% nitrogen
         return Particle("nitrogen",pos=position)
     elif atomSeed>=.01: #21% oxygen

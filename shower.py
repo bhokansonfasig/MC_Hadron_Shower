@@ -1,5 +1,5 @@
 """Code to generate hadron shower from primary"""
-from random import random
+import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from constants import pi
@@ -12,7 +12,7 @@ def randomValue(start,stop=None):
     if stop is None:
         stop = start
         start = 0
-    return start+random()*(stop-start)
+    return start+np.random.random_sample()*(stop-start)
 
 def generateRandomPrimary():
     """Returns a randomized primary particle"""
@@ -50,7 +50,8 @@ def propagate(particle):
 
 
 def interact(particle,target=None):
-    """Interact the particle with the target (or "decay") and return the products"""
+    """Interact the particle with the target (or "decay") and return the
+    products. If target is None, do nothing and return the particle"""
     if target is None:
         return [particle]
     elif target is "decay":
@@ -76,55 +77,55 @@ def interact(particle,target=None):
             print("Warning: particle",particle.type,"does not decay")
             return [particle]
     elif target.type=="N" or target.type=="O" or target.type=="Ar":
-        pionType = random()
+        pionType = np.random.random_sample()
         if pionType>=2/3:   #1/3 pi+
             splitEnergy = particle.energy/3
             return [Particle(particle.type,id=particle.id,
                              pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+random()-.5,
+                             theta=particle.theta+np.random.random_sample()-.5,
                              phi=randomValue(0,2*pi)),
                     Particle("n0",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+random()-.5,
+                             theta=particle.theta+np.random.random_sample()-.5,
                              phi=randomValue(0,2*pi)),
                     Particle("pi+",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+random()-.5,
+                             theta=particle.theta+np.random.random_sample()-.5,
                              phi=randomValue(0,2*pi))]
         elif pionType>=1/3: #1/3 pi-
             splitEnergy = particle.energy/3
             return [Particle(particle.type,id=particle.id,
                              pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+random()-.5,
+                             theta=particle.theta+np.random.random_sample()-.5,
                              phi=randomValue(0,2*pi)),
                     Particle("p+",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+random()-.5,
+                             theta=particle.theta+np.random.random_sample()-.5,
                              phi=randomValue(0,2*pi)),
                     Particle("pi-",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+random()-.5,
+                             theta=particle.theta+np.random.random_sample()-.5,
                              phi=randomValue(0,2*pi))]
         else:               #1/3 pi0
             splitEnergy = particle.energy/3
-            secondaryType = random()
+            secondaryType = np.random.random_sample()
             if secondaryType>=1/2: #1/2 proton
                 return [Particle(particle.type,id=particle.id,
                                  pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+random()-.5,
+                                 theta=particle.theta+np.random.random_sample()-.5,
                                  phi=randomValue(0,2*pi)),
                         Particle("p+",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+random()-.5,
+                                 theta=particle.theta+np.random.random_sample()-.5,
                                  phi=randomValue(0,2*pi)),
                         Particle("pi0",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+random()-.5,
+                                 theta=particle.theta+np.random.random_sample()-.5,
                                  phi=randomValue(0,2*pi))]
             else:                  #1/2 neutron
                 return [Particle(particle.type,id=particle.id,
                                  pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+random()-.5,
+                                 theta=particle.theta+np.random.random_sample()-.5,
                                  phi=randomValue(0,2*pi)),
                         Particle("n0",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+random()-.5,
+                                 theta=particle.theta+np.random.random_sample()-.5,
                                  phi=randomValue(0,2*pi)),
                         Particle("pi0",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+random()-.5,
+                                 theta=particle.theta+np.random.random_sample()-.5,
                                  phi=randomValue(0,2*pi))]
     else:
         print("Warning: no interaction between",particle.type,"and",target.type)
