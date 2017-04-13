@@ -238,4 +238,6 @@ class Particle:
             return sqrt(self.mass**2+self.Pmag**2)
         if name=="kinetic" or name=="ke":
             return self.energy-self.mass
+        if name=="beta":
+            return self.Pmag/self.energy
 
