@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from constants import pi
 from particle import Particle
 from atmosphere import density, getAtmosphericNucleus
+from interactions import decay
 
 
 def randomValue(start,stop=None):
@@ -55,27 +56,7 @@ def interact(particle,target=None):
     if target is None:
         return [particle]
     elif target is "decay":
-        if particle.type=="pi+":
-            return [Particle("mu+",pos=particle.position,energy=particle.energy,
-                             theta=particle.theta,phi=particle.phi),
-                    Particle("nuMu",pos=particle.position)]
-        elif particle.type=="pi-":
-            return [Particle("mu-",pos=particle.position,energy=particle.energy,
-                             theta=particle.theta,phi=particle.phi),
-                    Particle("nuMuBar",pos=particle.position)]
-        elif particle.type=="mu+":
-            return [Particle("e+",pos=particle.position,energy=particle.energy,
-                             theta=particle.theta,phi=particle.phi),
-                    Particle("nuE",pos=particle.position),
-                    Particle("nuMuBar",pos=particle.position)]
-        elif particle.type=="mu-":
-            return [Particle("e-",pos=particle.position,energy=particle.energy,
-                             theta=particle.theta,phi=particle.phi),
-                    Particle("nuEBar",pos=particle.position),
-                    Particle("nuMu",pos=particle.position)]
-        else:
-            print("Warning: particle",particle.type,"does not decay")
-            return [particle]
+        decay(particle)
     elif target.type=="N" or target.type=="O" or target.type=="Ar":
         pionType = np.random.random_sample()
         if pionType>=2/3:   #1/3 pi+

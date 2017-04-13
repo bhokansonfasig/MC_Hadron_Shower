@@ -182,6 +182,11 @@ class Particle:
                 self.mass = 36294.46 #MeV
                 self.charge = 19
                 self.lifetime = None
+        elif "calcium" in particleType.lower() or particleType=="Ca":
+            self.type = "Ca"
+            self.mass = 37224.92 #MeV
+            self.charge = 20
+            self.lifetime = None
         else:
             raise ParticleError("Unrecognized particle type "+str(particleType))
 

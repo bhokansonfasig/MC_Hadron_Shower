@@ -17,8 +17,10 @@ def lorentzBoost(vector,beta=0,direction=[0,0,0]):
     return np.dot(boost,vector)
 
 
-def twoBodyDecay(particle):
-    """Calculate kinematics of two body decay and return resulting particles"""
+def decay(particle):
+    """Calculate kinematics of two body decay and return resulting particles.
+    If the decay should have three particles, any neutrinos are ignored and
+    the resulting one- or two-body decay is performed"""
     # Determine products
     if particle.type=="pi+":
         products = [Particle("mu+",pos=particle.position),
@@ -27,10 +29,36 @@ def twoBodyDecay(particle):
         products = [Particle("mu-",pos=particle.position),
                     Particle("nuMuBar",pos=particle.position)]
     elif particle.type=="F-16":
-        procuts = [Particle("oxygen-15",pos=particle.position),
-                   Particle("proton",pos=particle.position)]
+        prodcuts = [Particle("oxygen-15",pos=particle.position),
+                    Particle("proton",pos=particle.position)]
+    # The following product lists ignore neutrinos
+    elif particle.type=="mu+":
+        return [Particle("e+",pos=particle.position,energy=particle.energy,
+                         theta=particle.theta,phi=particle.phi),
+                Particle("nuE",pos=particle.position),
+                Particle("nuMuBar",pos=particle.position)]
+    elif particle.type=="mu-":
+        return [Particle("e-",pos=particle.position,energy=particle.energy,
+                         theta=particle.theta,phi=particle.phi),
+                Particle("nuEBar",pos=particle.position),
+                Particle("nuMu",pos=particle.position)]
+    elif particle.type=="C-14" or particle.type=="O-14":
+        products = [Particle("nitrogen-14",pos=particle.position),
+                    Particle("e-",pos=particle.position)]
+    elif particle.type=="N-16":
+        products = [Particle("oxygen-16",pos=particle.position),
+                    Particle("e-",pos=particle.position)]
+    elif particle.type=="O-15":
+        products = [Particle("nitrogen-15",pos=particle.position),
+                    Particle("e+",pos=particle.position)]
+    elif particle.type=="Cl-40":
+        products = [Particle("argon-40",pos=particle.position),
+                    Particle("e-",pos=particle.position)]
+    elif particle.type=="K-40":
+        products = [Particle("calcium-40",pos=particle.position),
+                    Particle("e-",pos=particle.position)]
     else:
-        print("Warning: particle",particle.type,"does not decay into two products")
+        print("Warning:",particle.type,"decay not known")
         return [particle]
 
     # Kinematics in rest frame
