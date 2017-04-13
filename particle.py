@@ -40,10 +40,17 @@ class Particle:
                 self.type = "nuE"
                 self.mass = 0 #MeV
                 self.charge = 0 #e
+                self.lifetime = None
             elif "Mu" in particleType or "mu" in particleType:
                 self.type = "nuMu"
                 self.mass = 0 #MeV
                 self.charge = 0 #e
+                self.lifetime = None
+            elif "Tau" in particleType or "tau" in particleType:
+                self.type = "nuTau"
+                self.mass = 0 #MeV
+                self.charge = 0 #e
+                self.lifetime = None
             else:
                 raise ParticleError("Unrecognized particle type "+particleType)
             if "bar" in particleType.lower() or "anti" in particleType:
@@ -53,14 +60,17 @@ class Particle:
                 self.type = "pi+"
                 self.mass = 139.57018 #MeV
                 self.charge = 1 #e
+                self.lifetime = 2.6033e-8 #s
             elif "-" in particleType or "negative" in particleType:
                 self.type = "pi-"
                 self.mass = 139.57018 #MeV
                 self.charge = -1 #e
+                self.lifetime = 2.6033e-8 #s
             elif "0" in particleType or "neutral" in particleType:
                 self.type = "pi0"
                 self.mass = 134.9766 #MeV
                 self.charge = 0 #e
+                self.lifetime = 8.4e-17 #s
             else:
                 raise ParticleError("Unrecognized particle type "+particleType)
         elif "mu" in particleType:
@@ -68,40 +78,99 @@ class Particle:
                 self.type = "mu+"
                 self.mass = 105.658369 #MeV
                 self.charge = 1 #e
+                self.lifetime = 2.1969811e-6 #s
             elif "-" in particleType or "negative" in particleType:
                 self.type = "mu-"
                 self.mass = 105.658369 #MeV
                 self.charge = -1 #e
+                self.lifetime = 2.1969811e-6 #s
             else:
                 raise ParticleError("Unrecognized particle type "+particleType)
         elif particleType=="positron" or particleType=="e+":
             self.type = "e+"
             self.mass = 0.5109989 #MeV
             self.charge = 1 #e
+            self.lifetime = None
         elif particleType=="electron" or particleType=="e-" or particleType=="e":
             self.type = "e-"
             self.mass = 0.5109989 #MeV
             self.charge = -1 #e
+            self.lifetime = None
         elif particleType=="proton" or particleType=="p+" or particleType=="p":
             self.type = "p+"
             self.mass = 938.27203 #MeV
             self.charge = 1 #e
+            self.lifetime = None
         elif particleType=="neutron" or particleType=="n0" or particleType=="n":
             self.type = "n0"
             self.mass = 939.56536 #MeV
             self.charge = 0
-        elif particleType.lower()=="nitrogen" or particleType=="N":
-            self.type = "N"
-            self.mass = 13047.2 #MeV
-            self.charge = 7
-        elif particleType.lower()=="oxygen" or particleType=="O":
-            self.type = "O"
-            self.mass = 14903.3 #MeV
-            self.charge = 8
-        elif particleType.lower()=="argon" or particleType=="Ar":
+            self.lifetime = 881.5 #s
+        elif "carbon" in particleType.lower() or particleType=="C":
+            if "14" in particleType:
+                self.type = "C-14"
+                self.mass = 13043.94 #MeV
+                self.charge = 6
+                self.lifetime = None
+            else:
+                self.type = "C"
+                self.mass = 11177.93 #MeV
+                self.charge = 6
+                self.lifetime = None
+        elif "nitrogen" in particleType.lower() or particleType=="N":
+            if "16" in particleType:
+                self.type = "N-16"
+                self.mass = 14909.59 #MeV
+                self.charge = 7
+                self.lifetime = 7.13 #s
+            else:
+                self.type = "N"
+                self.mass = 13047.2 #MeV
+                self.charge = 7
+                self.lifetime = None
+        elif "oxygen" in particleType.lower() or particleType=="O":
+            if "14" in particleType:
+                self.type = "O-14"
+                self.mass = 13048.92 #MeV
+                self.charge = 8
+                self.lifetime = 70.598 #s
+            elif "15" in particleType:
+                self.type = "O-15"
+                self.mass = 13975.27 #MeV
+                self.charge = 8
+                self.lifetime = 122.24 #s
+            else:
+                self.type = "O"
+                self.mass = 14903.3 #MeV
+                self.charge = 8
+                self.lifetime = None
+        elif "chlorine" in particleType.lower() or particleType=="Cl":
+            if "40" in particleType:
+                self.type = "Cl-40"
+                self.mass = 37232.2 #MeV
+                self.charge = 17
+                self.lifetime = 81.1 #s
+            else:
+                self.type = "Cl-35"
+                self.mass = 32573.28 #MeV
+                self.charge = 17
+                self.lifetime = None
+        elif "argon" in particleType.lower() or particleType=="Ar":
             self.type = "Ar"
             self.mass = 37211 #MeV
             self.charge = 18
+            self.lifetime = None
+        elif "potassium" in particleType.lower() or particleType=="K":
+            if "40" in particleType:
+                self.type = "K-40"
+                self.mass = 37226.23 #MeV
+                self.charge = 19
+                self.lifetime = None
+            else:
+                self.type = "K-39"
+                self.mass = 36294.46 #MeV
+                self.charge = 19
+                self.lifetime = None
         else:
             raise ParticleError("Unrecognized particle type "+str(particleType))
 
