@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from constants import pi
 from particle import Particle
 from atmosphere import density, getAtmosphericNucleus
-from interactions import decay
+from interactions import decay, collision
 
 
 def randomValue(start,stop=None):
@@ -58,58 +58,10 @@ def interact(particle,target=None):
     elif target is "decay":
         decay(particle)
     elif target.type=="N" or target.type=="O" or target.type=="Ar":
-        pionType = np.random.random_sample()
-        if pionType>=2/3:   #1/3 pi+
-            splitEnergy = particle.energy/3
-            return [Particle(particle.type,id=particle.id,
-                             pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+np.random.random_sample()-.5,
-                             phi=randomValue(0,2*pi)),
-                    Particle("n0",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+np.random.random_sample()-.5,
-                             phi=randomValue(0,2*pi)),
-                    Particle("pi+",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+np.random.random_sample()-.5,
-                             phi=randomValue(0,2*pi))]
-        elif pionType>=1/3: #1/3 pi-
-            splitEnergy = particle.energy/3
-            return [Particle(particle.type,id=particle.id,
-                             pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+np.random.random_sample()-.5,
-                             phi=randomValue(0,2*pi)),
-                    Particle("p+",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+np.random.random_sample()-.5,
-                             phi=randomValue(0,2*pi)),
-                    Particle("pi-",pos=particle.position,energy=splitEnergy,
-                             theta=particle.theta+np.random.random_sample()-.5,
-                             phi=randomValue(0,2*pi))]
-        else:               #1/3 pi0
-            splitEnergy = particle.energy/3
-            secondaryType = np.random.random_sample()
-            if secondaryType>=1/2: #1/2 proton
-                return [Particle(particle.type,id=particle.id,
-                                 pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+np.random.random_sample()-.5,
-                                 phi=randomValue(0,2*pi)),
-                        Particle("p+",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+np.random.random_sample()-.5,
-                                 phi=randomValue(0,2*pi)),
-                        Particle("pi0",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+np.random.random_sample()-.5,
-                                 phi=randomValue(0,2*pi))]
-            else:                  #1/2 neutron
-                return [Particle(particle.type,id=particle.id,
-                                 pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+np.random.random_sample()-.5,
-                                 phi=randomValue(0,2*pi)),
-                        Particle("n0",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+np.random.random_sample()-.5,
-                                 phi=randomValue(0,2*pi)),
-                        Particle("pi0",pos=particle.position,energy=splitEnergy,
-                                 theta=particle.theta+np.random.random_sample()-.5,
-                                 phi=randomValue(0,2*pi))]
+        collision(particle,target)
     else:
-        print("Warning: no interaction between",particle.type,"and",target.type)
+        print("Warning: no supported interaction between",particle.type,
+              "and",target.type)
         return [particle,target]
 
 

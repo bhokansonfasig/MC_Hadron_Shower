@@ -77,3 +77,48 @@ def decay(particle):
     products[1].momentum = fourmom2[1:]
 
     return products
+
+
+
+def collision(particle,target):
+    """Calculate kinematics of collision between particle and target.
+    Returns products of the collision"""
+    # Determine product types
+    pionSeed = np.random.random_sample()
+    if pionSeed>=2/3:   #1/3 pi+
+        pionType = "pi+"
+        if target.type=="N":
+            productType = "carbon-14"
+        elif target.type=="O":
+            productType = "nitrogen-16"
+        else:
+            productType = "chlorine-40"
+    elif pionSeed>=1/3: #1/3 pi-
+        pionType = "pi-"
+        if target.type=="N":
+            productType = "oxygen-14"
+        elif target.type=="O":
+            productType = "fluorine-16"
+        else:
+            productType = "potassium-40"
+    else:               #1/3 pi0
+        pionType = "pi0"
+        productType = target.type
+
+    products = [Particle(particle.type,id=particle.id,pos=particle.position),
+                Particle("n0",pos=particle.position),
+                Particle("pi+",pos=particle.position)]
+
+    # Determine kinematics by dividing non-mass energy randomly (in COM frame)
+    energySeeds = np.random.random_sample(2)
+    energySeeds.sort()
+    productMassTotal = sum([particle.mass for particle in products])
+    energyScale = particle.energy + target.energy - productMassTotal
+    ke1 = energyScale*(energySeeds[0]-0)
+    ke2 = energyScale*(energySeeds[1]-energySeeds[0])
+    ke3 = energyScale*(1-energySeeds[1])
+    
+    cosThetaSeeds = np.random.random_sample(3)*2-1
+    phiSeeds = np.random.random_sample(3)*2*pi
+
+
