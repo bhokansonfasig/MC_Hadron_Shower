@@ -1,6 +1,7 @@
 """File for testing distributions of randomly generated numbers"""
 import numpy as np
 import matplotlib.pyplot as plt
+from interactions import rotate3D
 
 
 def test0():
@@ -49,6 +50,7 @@ def test2():
         a[i] = 4*rands[0]
         b[i] = 4*(rands[1]-rands[0])
         c[i] = 4*(1-rands[1])
+    print(np.mean(a),np.mean(b),np.mean(c))
     for x in [a,b,c]:
         plt.figure()
         plt.hist(x,bins=50)
@@ -136,6 +138,8 @@ def test6():
         b[i] = rands[1]-rands[0] - 1/3
         c[i] = 1-rands[1] - 1/3
         s[i] = a[i]+b[i]+c[i]
+    print(np.mean(a),np.mean(b),np.mean(c))
+    print(np.mean(s))
     for x in [a,b,c]:
         plt.figure()
         plt.hist(x,bins=50)
@@ -148,25 +152,112 @@ def test6():
 def test7():
     """Generation of three random numbers with a fixed sum of zero"""
     size = 10000
-    a = np.zeros(size)
-    b = np.zeros(size)
-    c = np.zeros(size)
-    s = np.zeros(size)
-    for i in range(size):
-        rands = np.random.random_sample(2)
-        rands.sort()
-        rands -= .5
-        a[i] = rands[0]+.5
-        b[i] = rands[1]-rands[0]
-        c[i] = .5-rands[1]
-        s[i] = a[i]+b[i]+c[i]
+    a = []
+    b = []
+    c = []
+    for _ in range(size):
+        rands = np.random.random_sample(2)-.5
+        if rands.sum()>.5 or rands.sum()<-.5:
+            continue
+        a.append(rands[0])
+        b.append(rands[1])
+        c.append(rands[0-rands.sum()])
+    print(len(a)/size)
+    print(np.mean(a),np.mean(b),np.mean(c))
     for x in [a,b,c]:
         plt.figure()
         plt.hist(x,bins=50)
         plt.show()
-    plt.figure()
-    plt.plot(s)
-    plt.show()
+
+
+def test8():
+    """Generation of three random vectors in a plane of fixed length,
+    summing to zero"""
+    size = 10000
+    amag = 2
+    bmag = 3
+    cmag = 4
+    ax = []
+    ay = []
+    bx = []
+    by = []
+    cx = []
+    cy = []
+    signs = []
+    xsum = []
+    ysum = []
+    for i in range(size):
+        xi = np.random.random_sample()*2*np.pi
+        sign = np.random.random_sample()
+        pm = int(sign<0.5)*2-1
+        theta_a = xi
+        theta_b = np.pi+xi-np.arccos((amag**2+bmag**2-cmag**2)/2/amag/bmag)
+        theta_c = np.pi+xi+np.arccos((amag**2+cmag**2-bmag**2)/2/amag/cmag)
+        ax.append(pm*amag*np.cos(theta_a))
+        ay.append(pm*amag*np.sin(theta_a))
+        bx.append(pm*bmag*np.cos(theta_b))
+        by.append(pm*bmag*np.sin(theta_b))
+        cx.append(pm*cmag*np.cos(theta_c))
+        cy.append(pm*cmag*np.sin(theta_c))
+        signs.append(pm)
+        xsum = ax[i]+bx[i]+cx[i]
+        ysum = ay[i]+by[i]+cy[i]
+    for x in [ax,ay,bx,by,cx,cy,xsum,ysum,signs]:
+        plt.figure()
+        plt.hist(x,bins=50)
+        plt.show()
+
+
+def test9():
+    """Generation of three random vectors in 3D of fixed length,
+    summing to zero"""
+    size = 10000
+    amag = 2
+    bmag = 3
+    cmag = 4
+    ax = []
+    ay = []
+    az = []
+    bx = []
+    by = []
+    bz = []
+    cx = []
+    cy = []
+    cz = []
+    signs = []
+    xsum = []
+    ysum = []
+    zsum = []
+    for i in range(size):
+        phi = np.random.random_sample()*2*np.pi
+        theta = np.arccos(np.random.random_sample()*2-1)
+        pm = int(np.random.random_sample()<0.5)*2-1
+        xi_a = 0
+        xi_b = np.pi-np.arccos((amag**2+bmag**2-cmag**2)/2/amag/bmag)
+        xi_c = np.pi+np.arccos((amag**2+cmag**2-bmag**2)/2/amag/cmag)
+        a = [0,0,amag]
+        b = [bmag*np.sin(xi_b),0,bmag*np.cos(xi_b)]
+        c = [cmag*np.sin(xi_c),0,cmag*np.cos(xi_c)]
+        a2 = rotate3D(a,theta,phi)
+        b2 = rotate3D(b,theta,phi)
+        c2 = rotate3D(c,theta,phi)
+        ax.append(pm*a2[0])
+        ay.append(pm*a2[1])
+        az.append(pm*a2[2])
+        bx.append(pm*b2[0])
+        by.append(pm*b2[1])
+        bz.append(pm*b2[2])
+        cx.append(pm*c2[0])
+        cy.append(pm*c2[1])
+        cz.append(pm*c2[2])
+        signs.append(pm)
+        xsum.append(ax[i]+bx[i]+cx[i])
+        ysum.append(ay[i]+by[i]+cy[i])
+        zsum.append(az[i]+bz[i]+cz[i])
+    for x in [ax,ay,az,bx,by,bz,cx,cy,cz,xsum,ysum,zsum,signs]:
+        plt.figure()
+        plt.hist(x,bins=50)
+        plt.show()
 
 
 if __name__ == '__main__':
@@ -177,4 +268,6 @@ if __name__ == '__main__':
     # test4()
     # test5()
     # test6()
-    test7()
+    # test7()
+    # test8()
+    test9()
