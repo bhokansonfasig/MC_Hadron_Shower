@@ -1,6 +1,10 @@
 """Tests for functions across project"""
+import numpy as np
+import matplotlib.pyplot as plt
 from particle import Particle
 from interactions import lorentzBoost,decay,collision
+from MCmethods import randomDistance
+from atmosphere import getInverseCDF
 
 def testDecay():
     """Test decay function with rest-frame charged pion decay"""
@@ -49,7 +53,35 @@ def testCollision():
     print("    Final momentum:",pf)
 
 
+def testRandomDistance():
+    """Test random distance distribution for atmospheric model"""
+    trials = 10000
+    nbins = 50
+
+    sigma = 2e-25
+    invLambda = 0.02504e27*sigma
+    z = 200000
+    theta = 2/3*np.pi
+
+    distances = np.zeros(trials)
+    function = getInverseCDF(sigma,z,theta)
+    for i in range(trials):
+        distances[i] = randomDistance(function)
+    plt.hist(distances,bins=nbins,label="Data",normed=True)
+
+    xMax = int(-z/np.cos(theta))
+    xVals = np.arange(0,xMax,xMax/1000)
+    expVals = np.exp(-(z+xVals*np.cos(theta))/8000)
+    yVals = invLambda*expVals*np.exp(-invLambda*8000/np.cos(theta) * \
+                                     (np.exp(-z/8000)-expVals))
+    plt.plot(xVals,yVals,label="Theory")
+
+    plt.legend()
+    plt.show()
+
+
 if __name__ == '__main__':
-    testDecay()
-    testLorentzBoost()
-    testCollision()
+    # testDecay()
+    # testLorentzBoost()
+    # testCollision()
+    testRandomDistance()

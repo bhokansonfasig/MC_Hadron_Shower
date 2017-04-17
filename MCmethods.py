@@ -74,3 +74,9 @@ def rotate3D(vector,theta=0,phi=0):
           [sin(phi),cos(phi),0],
           [0,0,1]]
     return dot(rz, dot(rx,vector))
+
+
+def randomDistance(inverseCDF):
+    """Returns a random distance for a particle to travel given some inverted
+    cumulative density function of the distance (based on the atmospheric model)"""
+    return inverseCDF(random_sample())
