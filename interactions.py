@@ -125,8 +125,8 @@ def collision(particle,target):
                 Particle("pi+",pos=particle.position)]
 
     # Determine kinematics by dividing non-mass energy randomly (in COM frame)
-    # then choose a theta and phi angle for the first vector randomly,
-    # plus a sign, and determine the rest from that
+    # then determine the momentum vectors by forming a triangle with fixed side
+    # lengths (assume first vector points along z-axis)
     energySeeds = np.random.random_sample(2)
     energySeeds.sort()
     productMassTotal = sum([particle.mass for particle in products])
@@ -140,7 +140,8 @@ def collision(particle,target):
     xis = [0,
            pi-np.arccos((pmags[0]**2+pmags[1]**2-pmags[2]**2)/2/pmags[0]/pmags[1]),
            pi+np.arccos((pmags[0]**2+pmags[2]**2-pmags[1]**2)/2/pmags[0]/pmags[2])]
-    
+
+    # Rotate triangle of momenta by some theta and phi
     phi = np.random.random_sample()*2*pi #decay angle
     costheta = np.random.random_sample()*2-1 #rotation around interaction axis
     theta = np.arccos(costheta)
@@ -151,9 +152,11 @@ def collision(particle,target):
         unrotated = [mag*np.sin(xis[i]),0,mag*np.cos(xis[i])]
         momenta.append(sign*rotate3D(unrotated,theta,phi))
 
+    # Boost momenta to the lab frame
+    beta = particle.Pmag/(particle.energy+target.mass)
     for i,prod in enumerate(products):
         fourmomentum = lorentzBoost([prod.energy]+momenta[i],
-                                    particle.beta,particle.dir)
+                                    beta,particle.dir)
         prod.momentum = fourmomentum[1:]
 
     return products
