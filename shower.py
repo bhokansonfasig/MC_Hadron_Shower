@@ -1,5 +1,4 @@
 """Code to generate hadron shower from primary"""
-import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from constants import pi
@@ -8,19 +7,13 @@ from atmosphere import density, getAtmosphericNucleus
 from interactions import decay, collision
 
 
-def randomValue(start,stop=None):
-    """Returns a random value in the range [start,stop)"""
-    if stop is None:
-        stop = start
-        start = 0
-    return start+np.random.random_sample()*(stop-start)
 
 def generateRandomPrimary():
     """Returns a randomized primary particle"""
     # primaryTypes = ["proton"]
     particleType = "proton"
     position = [0,0,1000]
-    energy = 10000
+    energy = 100000
     theta = pi
     phi = 0
 
@@ -35,10 +28,7 @@ def getNextInteraction(particle):
     if "mu" in particle.type or "pi" in particle.type:
         target = "decay"
     else:
-        if particle.ke<140*5:
-            target = None
-        else:
-            target = getAtmosphericNucleus(particle.position)
+        target = getAtmosphericNucleus(particle.position)
     return interactionLength, target
 
 def propagate(particle):
@@ -56,16 +46,16 @@ def interact(particle,target=None):
     if target is None:
         return [particle]
     elif target is "decay":
-        decay(particle)
+        return decay(particle)
     elif target.type=="N" or target.type=="O" or target.type=="Ar":
-        collision(particle,target)
+        return collision(particle,target)
     else:
         print("Warning: no supported interaction between",particle.type,
               "and",target.type)
         return [particle,target]
 
 
-def generateShower(drawShower=False):
+def generateShower(drawShower=False,maxIterations=1000):
     """Generates a full hadron shower and returns any muons that reach the surface"""
     #Setup
     primary = generateRandomPrimary()
@@ -75,9 +65,15 @@ def generateShower(drawShower=False):
     if drawShower:
         vertices = {primary.id: [[x for x in primary.position]]}
         colors = {primary.id: drawColor(primary.type)}
+        markers = {primary.id: drawMarker(primary.type)}
+
+    # Set a ceiling above which particles can be assumed to escape
+    ceiling = primary.position[2]
 
     # Loop until all propagating particles reach the ground
+    loopCount = 0
     while not(finished):
+        loopCount += 1
         products = []
         # Propagate and interact any particles that need it
         for particle in particles:
@@ -90,10 +86,12 @@ def generateShower(drawShower=False):
                 products.append(particle)
         particles = products
         finished = True
-        # Print particles at each step
-        print("---")
-        for particle in particles:
-            print(particle.id,particle.type)
+
+        # # Print particles at each step
+        # print("---")
+        # for particle in particles:
+        #     print(particle.id,particle.type)
+
         # Add positions to the drawing dictionary
         if drawShower:
             for particle in particles:
@@ -102,16 +100,24 @@ def generateShower(drawShower=False):
                 except KeyError:
                     vertices[particle.id] = [[x for x in particle.position]]
                     colors[particle.id] = drawColor(particle.type)
+                    markers[particle.id] = drawMarker(particle.type)
+
         # Check to see if all propagating particles have reached the ground
         for particle in particles:
-            if particle.type in propagationParticles and particle.position[2]>0:
+            if particle.type in propagationParticles and \
+               (particle.position[2]>0 and particle.position[2]<ceiling):
                 finished = False
                 break
+        if loopCount==maxIterations:
+            print("Stopped after",loopCount,"iterations")
+            break
+
     # Get the muons
     muons = []
     for particle in particles:
         if particle.type=="mu+" or particle.type=="mu-":
             muons.append(particle)
+
     # Plot the shower development
     if drawShower:
         # for pos in vertices[0]:
@@ -122,8 +128,10 @@ def generateShower(drawShower=False):
             xvals = [pos[0] for pos in points]
             yvals = [pos[1] for pos in points]
             zvals = [pos[2] for pos in points]
-            ax.plot(xs=xvals,ys=yvals,zs=zvals,color=colors[particleId])#,marker='.')
+            ax.plot(xs=xvals,ys=yvals,zs=zvals,
+                    color=colors[particleId],marker=markers[particleId])
         plt.show()
+
     return muons
 
 
@@ -139,6 +147,21 @@ def drawColor(particleType):
         return 'c'
     else:
         return 'k'
+
+def drawMarker(particleType):
+    """Return the marker style the particle should be drawn with"""
+    if particleType[:2]=="mu":
+        return ','
+    elif particleType[:2]=="pi":
+        return ','
+    elif particleType=="p+" or particleType=="n0":
+        return ','
+    elif particleType[:2]=="nu":
+        return 'x'
+    elif particleType.lower()!=particleType:
+        return ','
+    else:
+        return 'x'
 
 
 
