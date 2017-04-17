@@ -28,6 +28,17 @@ def rotate3D(vector,theta=0,phi=0):
     return np.dot(rz,np.dot(rx,vector))
 
 
+def randomWithSum(n,total):
+    """Generates n uniformly distributed random numbers whose sum is total"""
+    seeds = np.random.random_sample(n-1)
+    seeds = [0,1]+list(seeds)
+    seeds.sort()
+    vals = []
+    for i in range(n):
+        vals.append(total*(seeds[i+1]-seeds[i]))
+    return vals
+
+
 def decay(particle):
     """Calculate kinematics of two body decay and return resulting particles.
     If the decay should have three particles, any neutrinos are ignored and
@@ -88,8 +99,10 @@ def decay(particle):
     # Boost momenta to lab frame
     products[0].momentum = p1
     products[1].momentum = p2
-    fourmom1 = lorentzBoost([products[0].energy]+p1, particle.beta,particle.dir)
-    fourmom2 = lorentzBoost([products[1].energy]+p2, particle.beta,particle.dir)
+    beta = particle.beta
+    direction = [-1*x for x in particle.dir]
+    fourmom1 = lorentzBoost([products[0].energy]+p1, beta,direction)
+    fourmom2 = lorentzBoost([products[1].energy]+p2, beta,direction)
     products[0].momentum = fourmom1[1:]
     products[1].momentum = fourmom2[1:]
 
@@ -123,22 +136,37 @@ def collision(particle,target):
         productType = target.type
 
     products = [Particle(particle.type,id=particle.id,pos=particle.position),
-                Particle("n0",pos=particle.position),
-                Particle("pi+",pos=particle.position)]
+                Particle(productType,pos=particle.position),
+                Particle(pionType,pos=particle.position)]
 
     # Determine kinematics by dividing non-mass energy randomly (in COM frame)
     # then determine the momentum vectors by forming a triangle with fixed side
     # lengths (assume first vector points along z-axis)
-    energySeeds = np.random.random_sample(2)
-    energySeeds.sort()
+
+    # Boost to the COM frame before getting energies
+    beta = particle.Pmag/(particle.energy+target.mass)
+    direction = particle.dir
+    fourmom1 = lorentzBoost([particle.energy]+particle.momentum, beta,direction)
+    fourmom2 = lorentzBoost([target.energy]+target.momentum, beta,direction)
+
     productMassTotal = sum([particle.mass for particle in products])
-    energyScale = particle.energy + target.energy - productMassTotal
-    kes = [energyScale*(energySeeds[0]-0),
-           energyScale*(energySeeds[1]-energySeeds[0]),
-           energyScale*(1-energySeeds[1])]
-    pmags = [0,0,0]
-    for i,prod in enumerate(products):
-        pmags[i] = np.sqrt(kes[i]**2 + 2*kes[i]*prod.mass)
+    totalKE = fourmom1[0] + fourmom2[0] - productMassTotal
+    if totalKE<=0:
+        # Not enough energy for collision to do anything
+        return [particle,target]
+    # Loop through generation of momenta until they could possibly sum to zero
+    realistic = False
+    while not(realistic):
+        kes = randomWithSum(3,totalKE)
+        pmags = [0,0,0]
+        for i,prod in enumerate(products):
+            pmags[i] = np.sqrt(kes[i]**2 + 2*kes[i]*prod.mass)
+        # Momenta could sum to zero if no one is greater than the sum of the others
+        realistic = (pmags[0]<pmags[1]+pmags[2]) and \
+                    (pmags[1]<pmags[0]+pmags[2]) and \
+                    (pmags[2]<pmags[0]+pmags[1])
+
+    # Set angles from x-axis (unrotated)
     xis = [0,
            pi-np.arccos((pmags[0]**2+pmags[1]**2-pmags[2]**2)/2/pmags[0]/pmags[1]),
            pi+np.arccos((pmags[0]**2+pmags[2]**2-pmags[1]**2)/2/pmags[0]/pmags[2])]
@@ -151,13 +179,22 @@ def collision(particle,target):
 
     for i,mag in enumerate(pmags):
         unrotated = [mag*np.sin(xis[i]),0,mag*np.cos(xis[i])]
-        products[i].momentum = sign*rotate3D(unrotated,theta,phi)
+        products[i].momentum = list(sign*rotate3D(unrotated,theta,phi))
+
+    # for i,x in enumerate("xyzE"):
+    #     tot = 0
+    #     for prod in products:
+    #         if x=="E":
+    #             tot += prod.energy
+    #         else:
+    #             tot += prod.momentum[i]
+    #     print("  "+x+"-component total:",tot)
 
     # Boost momenta to the lab frame
     beta = particle.Pmag/(particle.energy+target.mass)
+    direction = [-1*x for x in particle.dir]
     for i,prod in enumerate(products):
-        fourmomentum = lorentzBoost([prod.energy]+prod.momentum,
-                                    beta,particle.dir)
+        fourmomentum = lorentzBoost([prod.energy]+prod.momentum, beta,direction)
         prod.momentum = fourmomentum[1:]
 
     return products
