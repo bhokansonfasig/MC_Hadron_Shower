@@ -86,6 +86,8 @@ def decay(particle):
     p2 = [-p1[0],-p1[1],-p1[2]]
 
     # Boost momenta to lab frame
+    products[0].momentum = p1
+    products[1].momentum = p2
     fourmom1 = lorentzBoost([products[0].energy]+p1, particle.beta,particle.dir)
     fourmom2 = lorentzBoost([products[1].energy]+p2, particle.beta,particle.dir)
     products[0].momentum = fourmom1[1:]
@@ -147,15 +149,14 @@ def collision(particle,target):
     theta = np.arccos(costheta)
     sign = int(np.random.random_sample()<0.5)*2-1
 
-    momenta = []
     for i,mag in enumerate(pmags):
         unrotated = [mag*np.sin(xis[i]),0,mag*np.cos(xis[i])]
-        momenta.append(sign*rotate3D(unrotated,theta,phi))
+        products[i].momentum = sign*rotate3D(unrotated,theta,phi)
 
     # Boost momenta to the lab frame
     beta = particle.Pmag/(particle.energy+target.mass)
     for i,prod in enumerate(products):
-        fourmomentum = lorentzBoost([prod.energy]+momenta[i],
+        fourmomentum = lorentzBoost([prod.energy]+prod.momentum,
                                     beta,particle.dir)
         prod.momentum = fourmomentum[1:]
 
