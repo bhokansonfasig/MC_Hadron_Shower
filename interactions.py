@@ -1,6 +1,6 @@
 """Functions for handling particle collisions and decays"""
 import numpy as np
-from constants import pi
+from constants import pi, c
 from MCmethods import randomInRange, randomWithSum, isotropicAngles, randomMomentumTriangle
 from particle import Particle
 
@@ -156,3 +156,13 @@ def collision(particle,target):
 
     return products
 
+
+
+def getDecayInverseCDF(lifetime,beta):
+    """Returns a function that will give the distance value for a provided value
+    of the cumulative density function"""
+    def invCDF(val):
+        """Calculates the inverse cumulative density function for decay"""
+        d = beta*c*lifetime/np.sqrt(1-beta**2)
+        return -d*np.log(1-val)
+    return invCDF

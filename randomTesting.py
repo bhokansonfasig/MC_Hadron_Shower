@@ -1,7 +1,8 @@
 """File for testing distributions of randomly generated numbers"""
 import numpy as np
 import matplotlib.pyplot as plt
-from interactions import rotate3D
+from MCmethods import rotate3D, randomDistance
+from atmosphere import getCollisionInverseCDF
 
 
 def test0():
@@ -260,6 +261,34 @@ def test9():
         plt.show()
 
 
+def test10():
+    """Generate two random lengths and return shorter one"""
+    crossSection = 2e-25
+    z = 200000
+    theta = 2/3*np.pi
+
+    invCDF1 = getCollisionInverseCDF(crossSection,z,theta)
+    invCDF2 = getCollisionInverseCDF(3*crossSection,z,theta)
+
+    size = 10000
+
+    lengths = []
+    cdfs = []
+    for _ in range(size):
+        len1 = randomDistance(invCDF1)
+        len2 = randomDistance(invCDF2)
+        if len1<=len2:
+            lengths.append(len1)
+            cdfs.append(1)
+        else:
+            lengths.append(len2)
+            cdfs.append(2)
+
+    plt.hist(lengths,bins=50)
+    print(cdfs.count(1),cdfs.count(2))
+    plt.show()
+
+
 if __name__ == '__main__':
     # test0()
     # test1()
@@ -270,4 +299,5 @@ if __name__ == '__main__':
     # test6()
     # test7()
     # test8()
-    test9()
+    # test9()
+    test10()

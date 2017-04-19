@@ -2,9 +2,10 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from constants import pi
+from MCmethods import randomDistance
 from particle import Particle
-from atmosphere import density, getAtmosphericNucleus
-from interactions import decay, collision
+from atmosphere import density, getAtmosphericNucleus, getAirCrossSection, getCollisionInverseCDF
+from interactions import decay, collision, getDecayInverseCDF
 
 
 
@@ -12,7 +13,7 @@ def generateRandomPrimary():
     """Returns a randomized primary particle"""
     # primaryTypes = ["proton"]
     particleType = "proton"
-    position = [0,0,1000]
+    position = [0,0,300000]
     energy = 100000
     theta = pi
     phi = 0
@@ -24,17 +25,38 @@ def getNextInteraction(particle):
     """Return a propagation length for the particle and the particle it
     interacts with after the propagation (decay returns "decay" as target,
     continued propagation returns None as target)"""
-    interactionLength = 100 #m
-    if "mu" in particle.type or "pi" in particle.type:
-        target = "decay"
+    if particle.lifetime is not None:
+        decayInvCDF = getDecayInverseCDF(particle.lifetime,particle.beta)
+        decayLength = randomDistance(decayInvCDF)
     else:
-        target = getAtmosphericNucleus(particle.position)
-    return interactionLength, target
+        decayLength = None
+    if not("mu" in particle.type):
+        sigma = getAirCrossSection(particle.energy)
+        z = particle.position[2]
+        theta = particle.theta
+        collisionInvCDF = getCollisionInverseCDF(sigma,z,theta)
+        collisionLength = randomDistance(collisionInvCDF)
+    else:
+        collisionLength = None
+
+    if decayLength is None:
+        return collisionLength, getAtmosphericNucleus(particle.position)
+    elif collisionLength is None:
+        return decayLength, "decay"
+    else:
+        if decayLength<collisionLength:
+            return decayLength, "decay"
+        else:
+            return collisionLength, getAtmosphericNucleus(particle.position)
+
 
 def propagate(particle):
     """Propagate the particle and return particle that caused it to stop
     (decay returns "decay")"""
     distance, target = getNextInteraction(particle)
+    if particle.position[2]+distance*particle.direction[2]<0:
+        distance = -1*particle.position[2]/particle.direction[2]+1
+        target = None
     for i in range(len(particle.position)):
         particle.position[i] += distance * particle.direction[i]
     return target
@@ -68,7 +90,7 @@ def generateShower(drawShower=False,maxIterations=1000):
         markers = {primary.id: drawMarker(primary.type)}
 
     # Set a ceiling above which particles can be assumed to escape
-    ceiling = primary.position[2]
+    ceiling = 2*primary.position[2]
 
     # Loop until all propagating particles reach the ground
     loopCount = 0
@@ -77,7 +99,8 @@ def generateShower(drawShower=False,maxIterations=1000):
         products = []
         # Propagate and interact any particles that need it
         for particle in particles:
-            if particle.type in propagationParticles:
+            if particle.type in propagationParticles and \
+               (particle.position[2]>0 and particle.position[2]<ceiling):
                 target = propagate(particle)
                 if drawShower:
                     vertices[particle.id].append([x for x in particle.position])
@@ -90,7 +113,7 @@ def generateShower(drawShower=False,maxIterations=1000):
         # # Print particles at each step
         # print("---")
         # for particle in particles:
-        #     print(particle.id,particle.type)
+        #     print(particle.id,particle.type,particle.position[2])
 
         # Add positions to the drawing dictionary
         if drawShower:
@@ -166,4 +189,6 @@ def drawMarker(particleType):
 
 
 if __name__ == '__main__':
-    generateShower(drawShower=True)
+    mus = generateShower(drawShower=True,maxIterations=10)
+    print("\n----------")
+    print(len(mus),"muons reached the ground")

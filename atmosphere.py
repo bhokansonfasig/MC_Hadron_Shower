@@ -5,7 +5,7 @@ from particle import Particle
 
 def density(height,scaleHeight=8000):
     """Returns the number density (in m^-3) of the atmosphere at a given height"""
-    return 0.02504e27*np.exp(-height/scaleHeight)
+    return 2.504e25*np.exp(-height/scaleHeight)
 
 def getAtmosphericNucleus(position):
     """Returns an atomic nucleus based on the atmospheric composition"""
@@ -18,7 +18,7 @@ def getAtmosphericNucleus(position):
         return Particle("argon",pos=position)
 
 
-def getInverseCDF(crossSection,particleHeight,particleTheta,scaleHeight=8000):
+def getCollisionInverseCDF(crossSection,particleHeight,particleTheta,scaleHeight=8000):
     """Returns a function that will give the distance value for a provided value
     of the cumulative density function"""
     def invCDF(val):
@@ -27,5 +27,26 @@ def getInverseCDF(crossSection,particleHeight,particleTheta,scaleHeight=8000):
         a = density(0)*crossSection
         b = scaleHeight/np.cos(particleTheta)
         c = np.exp(-particleHeight/scaleHeight)
-        return -b*np.log(1+ np.log(1-val)/(a*b*c))
+        if b>0:
+            n = 1-np.exp(-a*b*c)
+        else:
+            n = 1
+        print(a,b,c)
+        print("",particleHeight,particleTheta)
+        print(" ",val,a*b*c,1-np.exp(a*b*c))
+        print("  ",1-n*val,1+ np.log(1-n*val)/(a*b*c))
+        print("   ",-b*np.log(1+ np.log(1-n*val)/(a*b*c)))
+        return -b*np.log(1+ np.log(1-n*val)/(a*b*c))
     return invCDF
+
+
+def getAirCrossSection(energy):
+    """Returns the cross section of a particle with the air at given energy"""
+    s = 2*energy/1000*13 #GeV^2
+
+    sigmapp = 32.4 - 1.2*np.log(s) + 0.21*np.log(s)**2
+
+    sigmapair = sigmapp*4+100
+
+    #Convert from mb to m^2
+    return sigmapair*1e-31
