@@ -135,7 +135,7 @@ def generateShower(primary,drawShower=False,maxIterations=1000):
                 finished = False
                 break
         if loopCount==maxIterations:
-            print("Stopped after",loopCount,"iterations")
+            # print("Stopped after",loopCount,"iterations")
             break
 
     # Get the muons
