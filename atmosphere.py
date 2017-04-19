@@ -31,11 +31,6 @@ def getCollisionInverseCDF(crossSection,particleHeight,particleTheta,scaleHeight
             n = 1-np.exp(-a*b*c)
         else:
             n = 1
-        print(a,b,c)
-        print("",particleHeight,particleTheta)
-        print(" ",val,a*b*c,1-np.exp(a*b*c))
-        print("  ",1-n*val,1+ np.log(1-n*val)/(a*b*c))
-        print("   ",-b*np.log(1+ np.log(1-n*val)/(a*b*c)))
         return -b*np.log(1+ np.log(1-n*val)/(a*b*c))
     return invCDF
 

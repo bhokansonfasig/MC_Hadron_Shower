@@ -189,6 +189,6 @@ def drawMarker(particleType):
 
 
 if __name__ == '__main__':
-    mus = generateShower(drawShower=True,maxIterations=10)
+    mus = generateShower(drawShower=True)
     print("\n----------")
     print(len(mus),"muons reached the ground")
