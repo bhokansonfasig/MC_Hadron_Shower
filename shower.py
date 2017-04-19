@@ -9,11 +9,11 @@ from interactions import decay, collision, getDecayInverseCDF
 
 
 
-def generateRandomPrimary():
-    """Returns a randomized primary particle"""
+def generateRandomPrimary(height):
+    """Returns a randomized primary particle at a certain height"""
     # primaryTypes = ["proton"]
     particleType = "proton"
-    position = [0,0,300000]
+    position = [0,0,height]
     energy = 100000
     theta = pi
     phi = 0
@@ -50,12 +50,16 @@ def getNextInteraction(particle):
             return collisionLength, getAtmosphericNucleus(particle.position)
 
 
-def propagate(particle):
+def propagate(particle,ceiling=None):
     """Propagate the particle and return particle that caused it to stop
     (decay returns "decay")"""
     distance, target = getNextInteraction(particle)
     if particle.position[2]+distance*particle.direction[2]<0:
         distance = -1*particle.position[2]/particle.direction[2]+1
+        target = None
+    if ceiling is not None and \
+       particle.position[2]+distance*particle.direction[2]>ceiling:
+        distance = particle.position[2]/particle.direction[2]+1
         target = None
     for i in range(len(particle.position)):
         particle.position[i] += distance * particle.direction[i]
@@ -77,10 +81,9 @@ def interact(particle,target=None):
         return [particle,target]
 
 
-def generateShower(drawShower=False,maxIterations=1000):
+def generateShower(primary,drawShower=False,maxIterations=1000):
     """Generates a full hadron shower and returns any muons that reach the surface"""
     #Setup
-    primary = generateRandomPrimary()
     particles = [primary]
     finished = False
     propagationParticles = ["pi+","pi-","mu+","mu-","p+","n0"]
@@ -101,7 +104,7 @@ def generateShower(drawShower=False,maxIterations=1000):
         for particle in particles:
             if particle.type in propagationParticles and \
                (particle.position[2]>0 and particle.position[2]<ceiling):
-                target = propagate(particle)
+                target = propagate(particle,ceiling)
                 if drawShower:
                     vertices[particle.id].append([x for x in particle.position])
                 products.extend(interact(particle,target))
@@ -153,6 +156,9 @@ def generateShower(drawShower=False,maxIterations=1000):
             zvals = [pos[2] for pos in points]
             ax.plot(xs=xvals,ys=yvals,zs=zvals,
                     color=colors[particleId],marker=markers[particleId])
+        # # Only show plot below first interaction point
+        # plotHeight = vertices[0][1][2]*1.2
+        # ax.set_zbound(-10,plotHeight)
         plt.show()
 
     return muons
@@ -189,6 +195,6 @@ def drawMarker(particleType):
 
 
 if __name__ == '__main__':
-    mus = generateShower(drawShower=True)
-    print("\n----------")
+    proton = generateRandomPrimary(500000)
+    mus = generateShower(proton,drawShower=True)
     print(len(mus),"muons reached the ground")
