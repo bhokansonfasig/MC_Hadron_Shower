@@ -28,10 +28,10 @@ def scaleValue(value,base=1):
 
 
 
-def plotSingleShower(primaryHeight=500000):
-    """Plots one shower in 3D"""
-    proton = generatePrimary(height=primaryHeight)
-    muons = generateShower(proton,drawShower=True)
+def plotSingleShower(plotName=None,**kwargs):
+    """Plots one shower in 3D, kwargs passed on to generatePrimary"""
+    proton = generatePrimary(**kwargs)
+    muons = generateShower(proton,drawShower=True,plotName=plotName)
     print(len(muons),"muons reached the ground")
 
 
@@ -43,10 +43,10 @@ def muonNumberCounts(num,minE=100,setE=None,plotName=None):
             proton = generatePrimary(minE=minE)
         else:
             proton = generatePrimary(energy=setE)
-        print(proton.energy,end=" ")
         muons = generateShower(proton)
-        print(len(muons))
-        muonCounts[i] = len(muons)
+        for muon in muons:
+            if muon.ke>50:
+                muonCounts[i] += 1
 
     if setE is None:
         scaledE, letter = scaleValue(minE,1e6)
@@ -56,7 +56,7 @@ def muonNumberCounts(num,minE=100,setE=None,plotName=None):
         energyString = "E="+str(int(scaledE))+" "+letter+"eV"
 
     plt.hist(muonCounts,np.arange(-.5,muonCounts.max()+1.5,1))
-    plt.title("Muon Number Distribution in "+str(num)+" Events"+\
+    plt.title("Muon Number Distribution\nfor "+str(num)+" Events"+\
               " with "+energyString)
     plt.xlabel("Number of muons reaching the ground")
     plt.xlim([-.5,muonCounts.max()+.5])
@@ -65,7 +65,38 @@ def muonNumberCounts(num,minE=100,setE=None,plotName=None):
     plt.show()
 
 
+def lateralDistribution(num,minE=100,setE=None,rmax=None,plotName=None):
+    """Generates histogram of radii of muons reaching the ground"""
+    muonDistances = []
+    for _ in range(num):
+        if setE is None:
+            proton = generatePrimary(minE=minE)
+        else:
+            proton = generatePrimary(energy=setE)
+        muons = generateShower(proton)
+        for muon in muons:
+            if muon.ke>50:
+                r = np.sqrt(muon.position[0]**2+muon.position[1]**2)
+                if rmax is None or r<rmax:
+                    muonDistances.append(r)
+
+    if setE is None:
+        scaledE, letter = scaleValue(minE,1e6)
+        energyString = "E>"+str(int(scaledE))+" "+letter+"eV"
+    else:
+        scaledE, letter = scaleValue(setE,1e6)
+        energyString = "E="+str(int(scaledE))+" "+letter+"eV"
+
+    plt.hist(muonDistances,bins=50)
+    plt.title("Muon Lateral Distribution\nfor "+str(num)+" Events"+\
+              " with "+energyString)
+    plt.xlabel("Distance to shower core (m)")
+    if plotName is not None:
+        plt.savefig(plotName)
+    plt.show()
+
 
 if __name__ == '__main__':
-    # plotSingleShower()
-    muonNumberCounts(10,minE=1000000)
+    # plotSingleShower(energy=1e9)
+    # muonNumberCounts(100,setE=1000000)
+    lateralDistribution(100,setE=1e6,rmax=None)
