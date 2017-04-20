@@ -1,7 +1,7 @@
 """Atmospheric model code"""
 import numpy as np
 from MCmethods import random_sample
-from particle import Particle
+from particle import Particle, ParticleError
 
 def density(height,scaleHeight=8000):
     """Returns the number density (in m^-3) of the atmosphere at a given height"""
@@ -40,13 +40,20 @@ def getCollisionInverseCDF(crossSection,particleHeight,particleTheta,scaleHeight
     return invCDF
 
 
-def getAirCrossSection(energy):
+def getAirCrossSection(particle):
     """Returns the cross section of a particle with the air at given energy"""
-    s = 2*energy/1000*13 #GeV^2
+    s = 2*particle.energy/1000*13 #GeV^2
 
-    sigmapp = 32.4 - 1.2*np.log(s) + 0.21*np.log(s)**2
+    if particle.type=="p+" or particle.type=="n0":
+        base = 32.4
+    elif "pi" in particle.type:
+        base = 16
+    else:
+        raise ParticleError("Cross section not supported for "+particle.type)
 
-    sigmapair = sigmapp*4+100
+    sigma_p = base - 1.2*np.log(s) + 0.21*np.log(s)**2
+
+    sigma_air = sigma_p*4+100
 
     #Convert from mb to m^2
-    return sigmapair*1e-31
+    return sigma_air*1e-31

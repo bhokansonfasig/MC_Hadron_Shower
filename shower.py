@@ -52,7 +52,7 @@ def getNextInteraction(particle):
     else:
         decayLength = None
     if not("mu" in particle.type):
-        sigma = getAirCrossSection(particle.energy)
+        sigma = getAirCrossSection(particle)
         z = particle.position[2]
         theta = particle.theta
         collisionInvCDF = getCollisionInverseCDF(sigma,z,theta)
@@ -102,7 +102,7 @@ def interact(particle,target=None):
         return [particle,target]
 
 
-def generateShower(primary,drawShower=False,maxIterations=1000):
+def generateShower(primary,floor=0,maxIterations=1000,drawShower=False,plotName=None):
     """Generates a full hadron shower and returns any muons that reach the surface"""
     #Setup
     particles = [primary]
@@ -124,7 +124,7 @@ def generateShower(primary,drawShower=False,maxIterations=1000):
         # Propagate and interact any particles that need it
         for particle in particles:
             if particle.type in propagationParticles and \
-               (particle.position[2]>0 and particle.position[2]<ceiling):
+               (particle.position[2]>floor and particle.position[2]<ceiling):
                 target = propagate(particle,ceiling)
                 if drawShower:
                     vertices[particle.id].append([x for x in particle.position])
@@ -152,7 +152,7 @@ def generateShower(primary,drawShower=False,maxIterations=1000):
         # Check to see if all propagating particles have reached the ground
         for particle in particles:
             if particle.type in propagationParticles and \
-               (particle.position[2]>0 and particle.position[2]<ceiling):
+               (particle.position[2]>floor and particle.position[2]<ceiling):
                 finished = False
                 break
         if loopCount==maxIterations:
@@ -178,7 +178,9 @@ def generateShower(primary,drawShower=False,maxIterations=1000):
                     color=colors[particleId],marker=markers[particleId])
         # Only show plot below first interaction point
         plotHeight = vertices[0][1][2]*1.2
-        ax.set_zbound(-10,plotHeight)
+        ax.set_zbound(floor,plotHeight)
+        if plotName is not None:
+            plt.savefig(plotName)
         plt.show()
 
     return muons
