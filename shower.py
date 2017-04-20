@@ -2,23 +2,44 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from constants import pi
-from MCmethods import randomDistance
+from MCmethods import randomDistance, chooseEnergy
 from particle import Particle
 from atmosphere import density, getAtmosphericNucleus, getAirCrossSection, getCollisionInverseCDF
 from interactions import decay, collision, getDecayInverseCDF
 
 
 
-def generateRandomPrimary(height):
-    """Returns a randomized primary particle at a certain height"""
-    # primaryTypes = ["proton"]
+def generatePrimary(**kwargs):
+    """Returns a randomized primary particle with optional set attributes"""
+    # Random values
     particleType = "proton"
+    height = 500000
     position = [0,0,height]
-    energy = 100000
+    ke = chooseEnergy(minimum=1000)
     theta = pi
     phi = 0
 
-    return Particle(particleType,pos=position,E=energy,theta=theta,phi=phi)
+    # Set values
+    for key,val in kwargs.items():
+        if key=="type":
+            particleType = val
+        elif key=="height":
+            height = val
+            position = [0,0,height]
+        elif key=="minE":
+            ke = chooseEnergy(minimum=val)
+            if "energy" in kwargs.keys():
+                ke = kwargs["energy"]
+        elif key=="energy":
+            ke = val
+        elif key=="theta":
+            theta = val
+        elif key=="phi":
+            phi = val
+        else:
+            print("Warning: argument",key,"in generatePrimary not recognized")
+
+    return Particle(particleType,pos=position,KE=ke,theta=theta,phi=phi)
 
 
 def getNextInteraction(particle):
@@ -55,11 +76,11 @@ def propagate(particle,ceiling=None):
     (decay returns "decay")"""
     distance, target = getNextInteraction(particle)
     if particle.position[2]+distance*particle.direction[2]<0:
-        distance = -1*particle.position[2]/particle.direction[2]+1
+        distance = -1*particle.position[2]/particle.direction[2]+.1
         target = None
     if ceiling is not None and \
        particle.position[2]+distance*particle.direction[2]>ceiling:
-        distance = particle.position[2]/particle.direction[2]+1
+        distance = particle.position[2]/particle.direction[2]+.1
         target = None
     for i in range(len(particle.position)):
         particle.position[i] += distance * particle.direction[i]
@@ -141,13 +162,12 @@ def generateShower(primary,drawShower=False,maxIterations=1000):
     # Get the muons
     muons = []
     for particle in particles:
-        if particle.type=="mu+" or particle.type=="mu-":
+        if (particle.type=="mu+" or particle.type=="mu-") and \
+           particle.position[2]<0:
             muons.append(particle)
 
     # Plot the shower development
     if drawShower:
-        # for pos in vertices[0]:
-        #     print(pos)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         for particleId,points in vertices.items():
@@ -156,9 +176,9 @@ def generateShower(primary,drawShower=False,maxIterations=1000):
             zvals = [pos[2] for pos in points]
             ax.plot(xs=xvals,ys=yvals,zs=zvals,
                     color=colors[particleId],marker=markers[particleId])
-        # # Only show plot below first interaction point
-        # plotHeight = vertices[0][1][2]*1.2
-        # ax.set_zbound(-10,plotHeight)
+        # Only show plot below first interaction point
+        plotHeight = vertices[0][1][2]*1.2
+        ax.set_zbound(-10,plotHeight)
         plt.show()
 
     return muons
@@ -195,6 +215,6 @@ def drawMarker(particleType):
 
 
 if __name__ == '__main__':
-    proton = generateRandomPrimary(500000)
+    proton = generatePrimary()
     mus = generateShower(proton,drawShower=True)
     print(len(mus),"muons reached the ground")

@@ -17,20 +17,25 @@ class Particle:
         for key,val in kwargs.items():
             if key=="id":
                 self.id = val
-            if "pos" in key and len(val)==3:
+            elif "pos" in key and len(val)==3:
                 self.position = [float(x) for x in val]
-            if "mom" in key:
+            elif "mom" in key:
                 if isinstance(val,list) and len(val)==3:
                     self.momentum = [float(p) for p in val]
                 elif isinstance(val,float) or isinstance(val,int):
                     self.buildMomentumFromScalar(val,"momentum",kwargs)
-            if "vel" in key:
+            elif "vel" in key:
                 if isinstance(val,list) and len(val)==3:
                     self.momentum = [v*self.mass/c for v in val]
                 elif isinstance(val,float) or isinstance(val,int):
                     self.buildMomentumFromScalar(val,"velocity",kwargs)
-            if key=="energy" or key=="E":
+            elif key=="energy" or key=="E":
                 self.buildMomentumFromScalar(val,"energy",kwargs)
+            elif "kinetic" in key.lower() or key.lower()=="ke":
+                self.buildMomentumFromScalar(val,"kinetic",kwargs)
+            else:
+                if key!="theta" and key!="phi":
+                    print("Warning: argument",key,"in Particle not recognized")
 
 
     def identifyType(self,particleType):
@@ -197,7 +202,9 @@ class Particle:
             momentum = scalar
         elif kind=="velocity":
             momentum = scalar*self.mass/c
-        elif kind=="energy":
+        elif kind=="energy" or kind=="kinetic":
+            if kind=="kinetic":
+                scalar += self.mass
             if scalar<self.mass:
                 raise ParticleError("Particle energy less than mass ("\
                                     +str(scalar)+"<"+str(self.mass)+")")

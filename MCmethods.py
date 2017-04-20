@@ -81,3 +81,11 @@ def randomDistance(inverseCDF):
     cumulative density function of the distance (based on the atmospheric model)"""
     seed = random_sample()
     return inverseCDF(seed)
+
+
+def chooseEnergy(minimum=100):
+    """Returns a random energy value based on an E^-2.7 power law spectrum
+    with a minimum energy of 1 GeV"""
+    seed = random_sample()
+    normalization = minimum**1.7
+    return ((1-seed)/normalization)**(-1/1.7)
