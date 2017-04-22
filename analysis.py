@@ -62,8 +62,22 @@ def plotSingleShower(plotName=None,**kwargs):
 
 def generateDataset(num,minE=100,setE=None,isotropic=False,theta=None,phi=None):
     """Generate num showers and return muons from each shower"""
+    if setE is None:
+        scaledE, letter = scaleValue(minE,1e6)
+        energyString = "minE"+str(int(scaledE))+letter+"eV"
+    else:
+        scaledE, letter = scaleValue(setE,1e6)
+        energyString = "setE"+str(int(scaledE))+letter+"eV"
+    print(datetime.datetime.now().strftime("%H:%M"),"- Generating",end=" ")
+    if isotropic:
+        print("isotropic",end=" ")
+    else:
+        print("set",end=" ")
+    print("dataset with",energyString[:4]+"="+energyString[4:])
+
     showerResults = []
-    for _ in range(num):
+    tracker = 10
+    for i in range(num):
         if setE is None:
             proton = generatePrimary(minE=minE,isotropic=isotropic,
                                      theta=theta,phi=phi)
@@ -71,20 +85,21 @@ def generateDataset(num,minE=100,setE=None,isotropic=False,theta=None,phi=None):
             proton = generatePrimary(energy=setE,isotropic=isotropic,
                                      theta=theta,phi=phi)
         muons = generateShower(proton)
+        if 100*i/num>=tracker:
+            print("      -",str(tracker)+"%","@",
+                  datetime.datetime.now().strftime("%H:%M"))
+            tracker += 10
         showerResults.append(muons)
 
     filename = str(num)+"_"
-    if setE is None:
-        scaledE, letter = scaleValue(minE,1e6)
-        filename += "minE"+str(int(scaledE))+letter+"eV"
-    else:
-        scaledE, letter = scaleValue(setE,1e6)
-        filename += "setE"+str(int(scaledE))+letter+"eV"
+    filename += energyString
     if theta is not None and phi is not None:
         filename += "_theta"+str(round(theta,2))+"_phi"+str(round(phi,2))
     if isotropic:
         filename += "_isotropic"
     filename += ".pickle"
+
+    print("      - Saving to",filename)
 
     pFile = open(filename,'wb')
     pickle.dump(showerResults,pFile,-1)
@@ -167,12 +182,6 @@ if __name__ == '__main__':
     # muonNumberCounts(1000,minE=200)
     # lateralDistribution(1000,setE=1e12,rmax=2000)
 
-    count = 10
+    count = 10000
     for energy in [1e3,1e6,1e9,1e12]:
-        scaleE, let = scaleValue(energy,1e6)
-        print(datetime.datetime.now().strftime("%H:%M:%S"),
-              "Generating set dataset with energy",int(scaleE),let+"eV")
-        fname = generateDataset(count,setE=energy)
-        print("         - saved to",fname)
-        # print(datetime.datetime.now().strftime("%H:%M:%S"),
-        #       "Generating isotropic dataset with energy",,int(scaleE),let+"eV")
+        generateDataset(count,setE=energy)
