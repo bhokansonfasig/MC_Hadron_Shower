@@ -253,3 +253,10 @@ class Particle:
         if name=="beta":
             return self.Pmag/self.energy
 
+    # Since __getattr__ is defined, must define these functions to be pickle-able
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+

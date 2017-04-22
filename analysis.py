@@ -1,5 +1,6 @@
 """Functions for doing analysis of simulated hadron showers"""
 import pickle
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from shower import generatePrimary, generateShower
@@ -75,19 +76,21 @@ def generateDataset(num,minE=100,setE=None,isotropic=False,theta=None,phi=None):
     filename = str(num)+"_"
     if setE is None:
         scaledE, letter = scaleValue(minE,1e6)
-        filename += "minE"+str(int(scaledE))+letter+"eV_"
+        filename += "minE"+str(int(scaledE))+letter+"eV"
     else:
         scaledE, letter = scaleValue(setE,1e6)
-        filename += "setE"+str(int(scaledE))+letter+"eV_"
+        filename += "setE"+str(int(scaledE))+letter+"eV"
     if theta is not None and phi is not None:
-        filename += "theta"+str(round(theta,2))+"_phi"+str(round(phi,2))+"_"
+        filename += "_theta"+str(round(theta,2))+"_phi"+str(round(phi,2))
     if isotropic:
-        filename += "isotropic"
+        filename += "_isotropic"
     filename += ".pickle"
 
     pFile = open(filename,'wb')
     pickle.dump(showerResults,pFile,-1)
     pFile.close()
+
+    return filename
 
 
 def plotNumberCounts(dataFileName,plotName=None):
@@ -164,4 +167,12 @@ if __name__ == '__main__':
     # muonNumberCounts(1000,minE=200)
     # lateralDistribution(1000,setE=1e12,rmax=2000)
 
-    pass
+    count = 10
+    for energy in [1e3,1e6,1e9,1e12]:
+        scaleE, let = scaleValue(energy,1e6)
+        print(datetime.datetime.now().strftime("%H:%M:%S"),
+              "Generating set dataset with energy",int(scaleE),let+"eV")
+        fname = generateDataset(count,setE=energy)
+        print("         - saved to",fname)
+        # print(datetime.datetime.now().strftime("%H:%M:%S"),
+        #       "Generating isotropic dataset with energy",,int(scaleE),let+"eV")

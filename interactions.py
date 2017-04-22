@@ -163,6 +163,9 @@ def getDecayInverseCDF(lifetime,beta):
     of the cumulative density function"""
     def invCDF(val):
         """Calculates the inverse cumulative density function for decay"""
-        d = beta*c*lifetime/np.sqrt(1-beta**2)
+        if beta**2==1:
+            d = 1e300
+        else:
+            d = beta*c*lifetime/np.sqrt(1-beta**2)
         return -d*np.log(1-val)
     return invCDF
