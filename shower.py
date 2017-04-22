@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from constants import pi
-from MCmethods import randomDistance, chooseEnergy
+from MCmethods import isotropicAngles, pointInCircle, randomDistance, chooseEnergy
 from particle import Particle
 from atmosphere import density, getAtmosphericNucleus, getAirCrossSection, getCollisionInverseCDF
 from interactions import decay, collision, getDecayInverseCDF
@@ -12,12 +12,13 @@ from interactions import decay, collision, getDecayInverseCDF
 def generatePrimary(**kwargs):
     """Returns a randomized primary particle with optional set attributes"""
     # Random values
-    particleType = "proton"
-    height = 500000
-    position = [0,0,height]
-    ke = chooseEnergy(minimum=1000)
-    theta = pi
-    phi = 0
+    particleType = None
+    height = None
+    position = None
+    ke = None
+    theta = None
+    phi = None
+    isotropic = False
 
     # Set values
     for key,val in kwargs.items():
@@ -25,7 +26,6 @@ def generatePrimary(**kwargs):
             particleType = val
         elif key=="height":
             height = val
-            position = [0,0,height]
         elif key=="minE":
             ke = chooseEnergy(minimum=val)
             if "energy" in kwargs.keys():
@@ -36,8 +36,29 @@ def generatePrimary(**kwargs):
             theta = val
         elif key=="phi":
             phi = val
+        elif key=="isotropic":
+            isotropic = bool(val)
         else:
             print("Warning: argument",key,"in generatePrimary not recognized")
+
+    if particleType is None:
+        particleType = "proton"
+    if height is None:
+        height = 500000
+    if position is None:
+        if isotropic:
+            x, y = pointInCircle(radius=1000)
+            position = [x,y,height]
+        else:
+            position = [0,0,height]
+    if ke is None:
+        ke = chooseEnergy(minimum=1000)
+    if theta is None or phi is None:
+        if isotropic:
+            theta, phi = isotropicAngles(downgoing=True)
+        else:
+            theta = pi
+            phi = 0
 
     return Particle(particleType,pos=position,KE=ke,theta=theta,phi=phi)
 

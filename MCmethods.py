@@ -22,12 +22,22 @@ def randomWithSum(n,total):
     return vals
 
 
-def isotropicAngles():
+def isotropicAngles(downgoing=False):
     """Generates theta and phi with isotropic distribution"""
-    costheta = random_sample()*2-1
+    if downgoing:
+        costheta = -1*random_sample()
+    else:
+        costheta = random_sample()*2-1
     theta = arccos(costheta)
     phi = random_sample()*2*pi
     return theta,phi
+
+
+def pointInCircle(radius=1):
+    """Returns random points x,y within a circle of set radius"""
+    r2 = random_sample()*radius**2
+    theta = random_sample()*2*pi
+    return sqrt(r2)*cos(theta),sqrt(r2)*sin(theta)
 
 
 def randomMomentumTriangle(totalKE,masses):
