@@ -1,4 +1,5 @@
 """Functions for doing analysis of simulated hadron showers"""
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from shower import generatePrimary, generateShower
@@ -27,6 +28,29 @@ def scaleValue(value,base=1):
         return value, letters[index]
 
 
+def interpretFilename(filename):
+    """Returns values of primary based on filename"""
+    extensionIndex = filename.rfind(".p")
+    filenameBase = filename[:extensionIndex]
+    bits = filenameBase.split("_")
+
+    info = {"count": bits[0],
+            "energyType": bits[1][:4],
+            "energyValue": bits[1][4:],
+            "theta": None, "phi": None,
+            "isotropic": False}
+    if len(bits)==3:
+        info["isotropic"] = True
+    elif len(bits)==4:
+        info["theta"] = bits[2][5:]
+        info["phi"] = bits[3][3:]
+    elif len(bits)==5:
+        info["theta"] = bits[2][5:]
+        info["phi"] = bits[3][3:]
+        info["isotropic"] = True
+
+    return info
+
 
 def plotSingleShower(plotName=None,**kwargs):
     """Plots one shower in 3D, kwargs passed on to generatePrimary"""
@@ -35,68 +59,109 @@ def plotSingleShower(plotName=None,**kwargs):
     print(len(muons),"muons reached the ground")
 
 
-def muonNumberCounts(num,minE=100,setE=None,plotName=None):
-    """Generates histogram of number of muons reaching the ground"""
-    muonCounts = np.zeros(num)
-    for i in range(num):
+def generateDataset(num,minE=100,setE=None,isotropic=False,theta=None,phi=None):
+    """Generate num showers and return muons from each shower"""
+    showerResults = []
+    for _ in range(num):
         if setE is None:
-            proton = generatePrimary(minE=minE)
+            proton = generatePrimary(minE=minE,isotropic=isotropic,
+                                     theta=theta,phi=phi)
         else:
-            proton = generatePrimary(energy=setE)
+            proton = generatePrimary(energy=setE,isotropic=isotropic,
+                                     theta=theta,phi=phi)
         muons = generateShower(proton)
+        showerResults.append(muons)
+
+    filename = str(num)+"_"
+    if setE is None:
+        scaledE, letter = scaleValue(minE,1e6)
+        filename += "minE"+str(int(scaledE))+letter+"eV_"
+    else:
+        scaledE, letter = scaleValue(setE,1e6)
+        filename += "setE"+str(int(scaledE))+letter+"eV_"
+    if theta is not None and phi is not None:
+        filename += "theta"+str(round(theta,2))+"_phi"+str(round(phi,2))+"_"
+    if isotropic:
+        filename += "isotropic"
+    filename += ".pickle"
+
+    pFile = open(filename,'wb')
+    pickle.dump(showerResults,pFile,-1)
+    pFile.close()
+
+
+def plotNumberCounts(dataFileName,plotName=None):
+    """Generates histogram of number of muons reaching the ground"""
+    pFile = open(dataFileName,'rb')
+    showerResults = pickle.load(pFile)
+    info = interpretFilename(dataFileName)
+
+    muonCounts = np.zeros(int(info["count"]))
+    for i,muons in enumerate(showerResults):
         for muon in muons:
             if muon.ke>50:
                 muonCounts[i] += 1
 
-    if setE is None:
-        scaledE, letter = scaleValue(minE,1e6)
-        energyString = "E>"+str(int(scaledE))+" "+letter+"eV"
+    print(np.count_nonzero(muonCounts),"events with muons")
+
+    titleString = "Muon Number Distribution\nfor "+info["count"]
+    if info["isotropic"]:
+        titleString += " Isotropic"
+    titleString += " Events with "
+    if info["energyType"]=="minE":
+        titleString += "E>"
     else:
-        scaledE, letter = scaleValue(setE,1e6)
-        energyString = "E="+str(int(scaledE))+" "+letter+"eV"
+        titleString += "E="
+    titleString += info["energyValue"]
 
     plt.hist(muonCounts,np.arange(-.5,muonCounts.max()+1.5,1))
-    plt.title("Muon Number Distribution\nfor "+str(num)+" Events"+\
-              " with "+energyString)
+    plt.title(titleString)
     plt.xlabel("Number of muons reaching the ground")
     plt.xlim([-.5,muonCounts.max()+.5])
     if plotName is not None:
+        if not(isinstance(plotName,str)):
+            plotName = titleString.replace(" ","_")
         plt.savefig(plotName)
     plt.show()
 
 
-def lateralDistribution(num,minE=100,setE=None,rmax=None,plotName=None):
+def plotLateralDistribution(dataFileName,rmax=None,plotName=None):
     """Generates histogram of radii of muons reaching the ground"""
+    pFile = open(dataFileName,'rb')
+    showerResults = pickle.load(pFile)
+    info = interpretFilename(dataFileName)
+
     muonDistances = []
-    for _ in range(num):
-        if setE is None:
-            proton = generatePrimary(minE=minE)
-        else:
-            proton = generatePrimary(energy=setE)
-        muons = generateShower(proton)
+    for i,muons in enumerate(showerResults):
         for muon in muons:
             if muon.ke>50:
                 r = np.sqrt(muon.position[0]**2+muon.position[1]**2)
                 if rmax is None or r<rmax:
                     muonDistances.append(r)
 
-    if setE is None:
-        scaledE, letter = scaleValue(minE,1e6)
-        energyString = "E>"+str(int(scaledE))+" "+letter+"eV"
+    titleString = "Muon Number Distribution\nfor "+info["count"]
+    if info["isotropic"]:
+        titleString += " Isotropic"
+    titleString += " Events with "
+    if info["energyType"]=="minE":
+        titleString += "E>"
     else:
-        scaledE, letter = scaleValue(setE,1e6)
-        energyString = "E="+str(int(scaledE))+" "+letter+"eV"
+        titleString += "E="
+    titleString += info["energyValue"]
 
     plt.hist(muonDistances,bins=50)
-    plt.title("Muon Lateral Distribution\nfor "+str(num)+" Events"+\
-              " with "+energyString)
+    plt.title(titleString)
     plt.xlabel("Distance to shower core (m)")
     if plotName is not None:
+        if not(isinstance(plotName,str)):
+            plotName = titleString.replace(" ","_")
         plt.savefig(plotName)
     plt.show()
 
 
 if __name__ == '__main__':
     # plotSingleShower(energy=1e9)
-    # muonNumberCounts(100,setE=1000000)
-    lateralDistribution(100,setE=1e6,rmax=None)
+    # muonNumberCounts(1000,minE=200)
+    # lateralDistribution(1000,setE=1e12,rmax=2000)
+
+    pass
