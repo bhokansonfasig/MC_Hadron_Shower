@@ -328,14 +328,14 @@ def plotFirstInteractionHeight(num,minE=100,plotName=None):
 if __name__ == '__main__':
     # plotSingleShower(energy=1e9)
 
-    # count = 10
-    # for energy in [1e3,1e6,1e9,1e12]:
-    #     generateDataset(count,setE=energy)
+    count = 10
+    for energy in [1e9]:
+        generateDataset(count,setE=energy)
 
     # plotPrimaryEnergies(100000,minE=1000,plotName="100000_minE1GeV_primaries.png")
     # plotFirstInteractionHeight(10000,minE=1000,plotName="10000_minE1GeV_heights.png")
 
-    fileBase = "data/10_setE1TeV"
+    fileBase = "data/10_setE1PeV"
     plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
     plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
     plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")

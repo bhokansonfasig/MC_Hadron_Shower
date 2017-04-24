@@ -67,8 +67,6 @@ def getNextInteraction(particle):
     """Return a propagation length for the particle and the particle it
     interacts with after the propagation (decay returns "decay" as target,
     continued propagation returns None as target)"""
-    if particle.type=="F-16":
-        print("Propagating fluorine!")
     if particle.lifetime is not None:
         decayInvCDF = getDecayInverseCDF(particle.lifetime,particle.beta)
         decayLength = randomDistance(decayInvCDF)
@@ -148,16 +146,22 @@ def generateShower(primary,floor=0,maxIterations=1000,drawShower=False,plotName=
     while not(finished):
         loopCount += 1
         products = []
+        propagated = 0
         # Propagate and interact any particles that need it
         for particle in particles:
-            if particle.type in propagationParticles and \
-               (particle.position[2]>floor and particle.position[2]<ceiling):
-                target = propagate(particle,floor,ceiling)
-                if drawShower:
-                    vertices[particle.id].append([x for x in particle.position])
-                products.extend(interact(particle,target))
+            if particle.type in propagationParticles:
+                if particle.position[2]>floor and particle.position[2]<ceiling:
+                    target = propagate(particle,floor,ceiling)
+                    if drawShower:
+                        vertices[particle.id].append([x for x in particle.position])
+                    products.extend(interact(particle,target))
+                    propagated += 1
+                else:
+                    products.append(particle)
             else:
-                products.append(particle)
+                pass
+                # # If need to keep all particles for some reason, uncomment this
+                # products.append(particle)
         particles = products
         finished = True
 
@@ -165,6 +169,9 @@ def generateShower(primary,floor=0,maxIterations=1000,drawShower=False,plotName=
         # print("---")
         # for particle in particles:
         #     print(particle.id,particle.type,particle.position[2])
+        # print("---")
+        # print(propagated,"particles propagated")
+        # print(len(particles),"total products")
 
         # Add positions to the drawing dictionary
         if drawShower:
