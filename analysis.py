@@ -53,6 +53,28 @@ def interpretFilename(filename):
     return info
 
 
+
+def plotHistogramLogLog(data,bars=False,nbins=50,power=1):
+    """Plots the data on a log-log histogram"""
+    if bars:
+        logmin = np.log10(np.min(data))
+        logmax = np.log10(np.max(data))
+        plt.hist(data,log=True,bins=np.logspace(logmin,logmax,nbins+1))
+        plt.gca().set_xscale("log")
+    else:
+        logmin = np.log10(np.min(data))
+        logmax = np.log10(np.max(data))
+        binsize = (logmax-logmin)/nbins
+        hist = np.histogram(data,bins=np.logspace(logmin,logmax,nbins+1))
+        xVals = hist[1][:-1] * 10**(binsize/2)
+        yVals = hist[0]
+        if power!=1:
+            for i in range(len(yVals)):
+                yVals[i] *= xVals[i]**power
+        plt.loglog(xVals,yVals)
+
+
+
 def plotSingleShower(plotName=None,**kwargs):
     """Plots one shower in 3D, kwargs passed on to generatePrimary"""
     proton = generatePrimary(**kwargs)
@@ -168,11 +190,7 @@ def plotLateralDistribution(dataFileName,rmax=None,plotName=None):
         titleString += "E="
     titleString += info["energyValue"]
 
-    logmin = np.log10(np.min(muonDistances))
-    logmax = np.log10(np.max(muonDistances))
-
-    plt.hist(muonDistances,log=True,bins=np.logspace(logmin,logmax))
-    plt.gca().set_xscale("log")
+    plotHistogramLogLog(muonDistances,bars=True)
     plt.title(titleString)
     plt.xlabel("Distance to shower core (m)")
     plt.ylabel("Flux (arbitrary units)")
@@ -205,11 +223,7 @@ def plotEnergyDistribution(dataFileName,plotName=None):
         titleString += "E="
     titleString += info["energyValue"]
 
-    logmin = np.log10(np.min(muonEnergies))
-    logmax = np.log10(np.max(muonEnergies))
-
-    plt.hist(muonEnergies,log=True,bins=np.logspace(logmin,logmax))
-    plt.gca().set_xscale("log")
+    plotHistogramLogLog(muonEnergies,bars=True)
     plt.title(titleString)
     plt.xlabel("Muon energy (MeV)")
     plt.ylabel("Flux (arbitrary units)")
@@ -242,14 +256,10 @@ def plotMomentumDistribution(dataFileName,plotName=None):
         titleString += "E="
     titleString += info["energyValue"]
 
-    logmin = np.log10(np.min(muonMomenta))
-    logmax = np.log10(np.max(muonMomenta))
-
-    plt.hist(muonMomenta,log=True,bins=np.logspace(logmin,logmax))
-    plt.gca().set_xscale("log")
+    plotHistogramLogLog(muonMomenta,power=2.7)
     plt.title(titleString)
     plt.xlabel("Muon momentum (MeV)")
-    plt.ylabel("Flux (arbitrary units)")
+    plt.ylabel(r"$p_\mu^{2.7} \times$"+"Flux (arbitrary units)")
     if plotName is not None:
         if not(isinstance(plotName,str)):
             plotName = titleString.replace(" ","_")
@@ -265,25 +275,22 @@ def plotPrimaryEnergies(num,minE=100,plotName=None):
     primaryEnergies = np.zeros(num)
     for i in range(num):
         proton = generatePrimary(minE=minE)
-        primaryEnergies[i] = proton.energy
+        primaryEnergies[i] = proton.ke
 
     titleString = "Primary Energy Distribution\nfor "+str(num)
     titleString += " Events with "
     titleString += energyString
 
-    logmin = np.log10(primaryEnergies.min())
-    logmax = np.log10(primaryEnergies.max())
-
-    plt.hist(primaryEnergies,log=True,bins=np.logspace(logmin,logmax))
-    plt.gca().set_xscale("log")
+    plotHistogramLogLog(primaryEnergies,power=2.7)
     plt.title(titleString)
     plt.xlabel("Proton energy (MeV)")
-    plt.ylabel("Flux (arbitrary units)")
+    plt.ylabel(r"$E^{2.7} \times$"+"Flux (arbitrary units)")
     if plotName is not None:
         if not(isinstance(plotName,str)):
             plotName = titleString.replace(" ","_")
         plt.savefig(plotName)
     plt.show()
+
 
 
 if __name__ == '__main__':
@@ -293,9 +300,9 @@ if __name__ == '__main__':
     # for energy in [100,1e3,1e6,1e9,1e12]:
     #     generateDataset(count,minE=energy)
 
-    # plotPrimaryEnergies(100000,plotName="100000_minE100MeV_primaries.png")
+    # plotPrimaryEnergies(100000,minE=1000,plotName="100000_minE1GeV_primaries.png")
 
-    fileBase = "10000_setE1PeV"
+    fileBase = "10000_minE1TeV"
     plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
     plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
     plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")
