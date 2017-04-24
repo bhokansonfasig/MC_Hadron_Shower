@@ -31,7 +31,7 @@ def decay(particle):
         products = [Particle("mu-",pos=particle.position),
                     Particle("nuMuBar",pos=particle.position)]
     elif particle.type=="F-16":
-        prodcuts = [Particle("oxygen-15",pos=particle.position),
+        products = [Particle("oxygen-15",pos=particle.position),
                     Particle("proton",pos=particle.position)]
     # The following product lists ignore neutrinos
     elif particle.type=="mu+":

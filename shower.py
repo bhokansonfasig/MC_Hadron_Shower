@@ -67,12 +67,14 @@ def getNextInteraction(particle):
     """Return a propagation length for the particle and the particle it
     interacts with after the propagation (decay returns "decay" as target,
     continued propagation returns None as target)"""
+    if particle.type=="F-16":
+        print("Propagating fluorine!")
     if particle.lifetime is not None:
         decayInvCDF = getDecayInverseCDF(particle.lifetime,particle.beta)
         decayLength = randomDistance(decayInvCDF)
     else:
         decayLength = None
-    if not("mu" in particle.type):
+    if particle.type in ["pi+","pi-","p+","n0"]:
         sigma = getAirCrossSection(particle)
         z = particle.position[2]
         theta = particle.theta
@@ -132,7 +134,7 @@ def generateShower(primary,floor=0,maxIterations=1000,drawShower=False,plotName=
     #Setup
     particles = [primary]
     finished = False
-    propagationParticles = ["pi+","pi-","mu+","mu-","p+","n0"]
+    propagationParticles = ["pi+","pi-","mu+","mu-","p+","n0","F-16"]
     if drawShower:
         vertices = {primary.id: [[x for x in primary.position]]}
         colors = {primary.id: drawColor(primary.type)}

@@ -126,7 +126,7 @@ def generateDataset(num,minE=100,setE=None,isotropic=False,theta=None,phi=None):
 
     print("      - Saving to",filename)
 
-    pFile = open(filename,'wb')
+    pFile = open("data/"+filename,'wb')
     pickle.dump(showerResults,pFile,-1)
     pFile.close()
 
@@ -327,9 +327,9 @@ def plotFirstInteractionHeight(num,minE=100,plotName=None):
 if __name__ == '__main__':
     # plotSingleShower(energy=1e9)
 
-    # count = 10000
-    # for energy in [100,1e3,1e6,1e9,1e12]:
-    #     generateDataset(count,minE=energy)
+    count = 10
+    for energy in [1e3,1e6,1e9,1e12]:
+        generateDataset(count,setE=energy)
 
     # plotPrimaryEnergies(100000,minE=1000,plotName="100000_minE1GeV_primaries.png")
     # plotFirstInteractionHeight(10000,minE=1000,plotName="10000_minE1GeV_heights.png")
