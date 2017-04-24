@@ -92,17 +92,21 @@ def getNextInteraction(particle):
             return collisionLength, getAtmosphericNucleus(particle.position)
 
 
-def propagate(particle,ceiling=None):
+def propagate(particle,floor=None,ceiling=None):
     """Propagate the particle and return particle that caused it to stop
     (decay returns "decay")"""
     distance, target = getNextInteraction(particle)
-    if particle.position[2]+distance*particle.direction[2]<0:
-        distance = -1*particle.position[2]/particle.direction[2]+.1
+    # Stop particles at the floor level
+    if floor is not None and \
+       particle.position[2]+distance*particle.direction[2]<floor:
+        distance = (floor-particle.position[2])/particle.direction[2]+.1
         target = None
+    # Stop particles at the ceiling level
     if ceiling is not None and \
        particle.position[2]+distance*particle.direction[2]>ceiling:
-        distance = particle.position[2]/particle.direction[2]+.1
+        distance = (ceiling-particle.position[2])/particle.direction[2]+.1
         target = None
+    # Otherwise, propagate completely
     for i in range(len(particle.position)):
         particle.position[i] += distance * particle.direction[i]
     return target
@@ -146,7 +150,7 @@ def generateShower(primary,floor=0,maxIterations=1000,drawShower=False,plotName=
         for particle in particles:
             if particle.type in propagationParticles and \
                (particle.position[2]>floor and particle.position[2]<ceiling):
-                target = propagate(particle,ceiling)
+                target = propagate(particle,floor,ceiling)
                 if drawShower:
                     vertices[particle.id].append([x for x in particle.position])
                 products.extend(interact(particle,target))
@@ -238,6 +242,6 @@ def drawMarker(particleType):
 
 
 if __name__ == '__main__':
-    proton = generatePrimary()
+    proton = generatePrimary(energy=1000000)
     mus = generateShower(proton,drawShower=True)
     print(len(mus),"muons reached the ground")
