@@ -60,6 +60,7 @@ def plotSingleShower(plotName=None,**kwargs):
     print(len(muons),"muons reached the ground")
 
 
+
 def generateDataset(num,minE=100,setE=None,isotropic=False,theta=None,phi=None):
     """Generate num showers and return muons from each shower"""
     if setE is None:
@@ -157,7 +158,7 @@ def plotLateralDistribution(dataFileName,rmax=None,plotName=None):
                 if rmax is None or r<rmax:
                     muonDistances.append(r)
 
-    titleString = "Muon Number Distribution\nfor "+info["count"]
+    titleString = "Muon Lateral Distribution\nfor "+info["count"]
     if info["isotropic"]:
         titleString += " Isotropic"
     titleString += " Events with "
@@ -167,9 +168,117 @@ def plotLateralDistribution(dataFileName,rmax=None,plotName=None):
         titleString += "E="
     titleString += info["energyValue"]
 
-    plt.hist(muonDistances,bins=50)
+    logmin = np.log10(np.min(muonDistances))
+    logmax = np.log10(np.max(muonDistances))
+
+    plt.hist(muonDistances,log=True,bins=np.logspace(logmin,logmax))
+    plt.gca().set_xscale("log")
     plt.title(titleString)
     plt.xlabel("Distance to shower core (m)")
+    plt.ylabel("Flux (arbitrary units)")
+    if plotName is not None:
+        if not(isinstance(plotName,str)):
+            plotName = titleString.replace(" ","_")
+        plt.savefig(plotName)
+    plt.show()
+
+
+def plotEnergyDistribution(dataFileName,plotName=None):
+    """Generates histogram of energies of muons reaching the ground"""
+    pFile = open(dataFileName,'rb')
+    showerResults = pickle.load(pFile)
+    info = interpretFilename(dataFileName)
+
+    muonEnergies = []
+    for i,muons in enumerate(showerResults):
+        for muon in muons:
+            if muon.ke>50:
+                muonEnergies.append(muon.energy)
+
+    titleString = "Muon Energy Distribution\nfor "+info["count"]
+    if info["isotropic"]:
+        titleString += " Isotropic"
+    titleString += " Events with "
+    if info["energyType"]=="minE":
+        titleString += "E>"
+    else:
+        titleString += "E="
+    titleString += info["energyValue"]
+
+    logmin = np.log10(np.min(muonEnergies))
+    logmax = np.log10(np.max(muonEnergies))
+
+    plt.hist(muonEnergies,log=True,bins=np.logspace(logmin,logmax))
+    plt.gca().set_xscale("log")
+    plt.title(titleString)
+    plt.xlabel("Muon energy (MeV)")
+    plt.ylabel("Flux (arbitrary units)")
+    if plotName is not None:
+        if not(isinstance(plotName,str)):
+            plotName = titleString.replace(" ","_")
+        plt.savefig(plotName)
+    plt.show()
+
+
+def plotMomentumDistribution(dataFileName,plotName=None):
+    """Generates histogram of momenta of muons reaching the ground"""
+    pFile = open(dataFileName,'rb')
+    showerResults = pickle.load(pFile)
+    info = interpretFilename(dataFileName)
+
+    muonMomenta = []
+    for i,muons in enumerate(showerResults):
+        for muon in muons:
+            if muon.ke>50:
+                muonMomenta.append(muon.Pmag)
+
+    titleString = "Muon Momentum Distribution\nfor "+info["count"]
+    if info["isotropic"]:
+        titleString += " Isotropic"
+    titleString += " Events with "
+    if info["energyType"]=="minE":
+        titleString += "E>"
+    else:
+        titleString += "E="
+    titleString += info["energyValue"]
+
+    logmin = np.log10(np.min(muonMomenta))
+    logmax = np.log10(np.max(muonMomenta))
+
+    plt.hist(muonMomenta,log=True,bins=np.logspace(logmin,logmax))
+    plt.gca().set_xscale("log")
+    plt.title(titleString)
+    plt.xlabel("Muon momentum (MeV)")
+    plt.ylabel("Flux (arbitrary units)")
+    if plotName is not None:
+        if not(isinstance(plotName,str)):
+            plotName = titleString.replace(" ","_")
+        plt.savefig(plotName)
+    plt.show()
+
+
+def plotPrimaryEnergies(num,minE=100,plotName=None):
+    """Generates histogram of energies of proton primaries"""
+    scaledE, letter = scaleValue(minE,1e6)
+    energyString = "E>"+str(int(scaledE))+letter+"eV"
+
+    primaryEnergies = np.zeros(num)
+    for i in range(num):
+        proton = generatePrimary(minE=minE)
+        primaryEnergies[i] = proton.energy
+
+    titleString = "Primary Energy Distribution\nfor "+str(num)
+    titleString += " Events with "
+    titleString += energyString
+
+    logmin = np.log10(primaryEnergies.min())
+    logmax = np.log10(primaryEnergies.max())
+
+    plt.hist(primaryEnergies,log=True,bins=np.logspace(logmin,logmax))
+    plt.gca().set_xscale("log")
+    plt.title(titleString)
+    plt.xlabel("Proton energy (MeV)")
+    plt.ylabel("Flux (arbitrary units)")
     if plotName is not None:
         if not(isinstance(plotName,str)):
             plotName = titleString.replace(" ","_")
@@ -179,9 +288,15 @@ def plotLateralDistribution(dataFileName,rmax=None,plotName=None):
 
 if __name__ == '__main__':
     # plotSingleShower(energy=1e9)
-    # muonNumberCounts(1000,minE=200)
-    # lateralDistribution(1000,setE=1e12,rmax=2000)
 
-    count = 10000
-    for energy in [1e3,1e6,1e9,1e12]:
-        generateDataset(count,setE=energy)
+    # count = 10000
+    # for energy in [100,1e3,1e6,1e9,1e12]:
+    #     generateDataset(count,minE=energy)
+
+    # plotPrimaryEnergies(100000,plotName="100000_minE100MeV_primaries.png")
+
+    fileBase = "10000_setE1PeV"
+    plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
+    plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
+    plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")
+    plotMomentumDistribution(fileBase+".pickle",plotName=fileBase+"_momenta.png")
