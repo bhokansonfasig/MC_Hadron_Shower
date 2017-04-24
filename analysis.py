@@ -4,6 +4,8 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from shower import generatePrimary, generateShower
+from MCmethods import randomDistance
+from atmosphere import getAirCrossSection, getCollisionInverseCDF
 
 
 def scaleValue(value,base=1):
@@ -292,6 +294,35 @@ def plotPrimaryEnergies(num,minE=100,plotName=None):
     plt.show()
 
 
+def plotFirstInteractionHeight(num,minE=100,plotName=None):
+    """Generates histogram of heights of first interactions of primaries"""
+    scaledE, letter = scaleValue(minE,1e6)
+    energyString = "E>"+str(int(scaledE))+letter+"eV"
+
+    interactionHeights = np.zeros(num)
+    for i in range(num):
+        proton = generatePrimary(minE=minE)
+        sigma = getAirCrossSection(proton)
+        z = proton.position[2]
+        theta = proton.theta
+        collisionInvCDF = getCollisionInverseCDF(sigma,z,theta)
+        collisionLength = randomDistance(collisionInvCDF)
+        interactionHeights[i] = z-collisionLength
+
+    titleString = "First Interaction Height Distribution\nfor "+str(num)
+    titleString += " Events with "
+    titleString += energyString
+
+    plt.hist(interactionHeights,np.linspace(0,interactionHeights.max()))
+    plt.title(titleString)
+    plt.xlabel("Height of Primary's First Ineraction (m)")
+    if plotName is not None:
+        if not(isinstance(plotName,str)):
+            plotName = titleString.replace(" ","_")
+        plt.savefig(plotName)
+    plt.show()
+
+
 
 if __name__ == '__main__':
     # plotSingleShower(energy=1e9)
@@ -301,9 +332,10 @@ if __name__ == '__main__':
     #     generateDataset(count,minE=energy)
 
     # plotPrimaryEnergies(100000,minE=1000,plotName="100000_minE1GeV_primaries.png")
+    plotFirstInteractionHeight(10000,minE=1000,plotName="10000_minE1GeV_heights.png")
 
-    fileBase = "10000_minE1TeV"
-    plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
-    plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
-    plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")
-    plotMomentumDistribution(fileBase+".pickle",plotName=fileBase+"_momenta.png")
+    # fileBase = "10000_minE1TeV"
+    # plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
+    # plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
+    # plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")
+    # plotMomentumDistribution(fileBase+".pickle",plotName=fileBase+"_momenta.png")
