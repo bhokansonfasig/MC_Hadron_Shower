@@ -332,9 +332,9 @@ if __name__ == '__main__':
     #     generateDataset(count,minE=energy)
 
     # plotPrimaryEnergies(100000,minE=1000,plotName="100000_minE1GeV_primaries.png")
-    plotFirstInteractionHeight(10000,minE=1000,plotName="10000_minE1GeV_heights.png")
+    # plotFirstInteractionHeight(10000,minE=1000,plotName="10000_minE1GeV_heights.png")
 
-    # fileBase = "10000_minE1TeV"
+    # fileBase = "10000_setE1PeV"
     # plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
     # plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
     # plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")

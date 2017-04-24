@@ -1,7 +1,7 @@
 """Functions for handling particle collisions and decays"""
 import numpy as np
 from constants import pi, c
-from MCmethods import randomInRange, randomWithSum, isotropicAngles, randomMomentumTriangle
+from MCmethods import randomInRange, randomWithSum, isotropicAngles, randomMomentumTriangle, chooseMultiplicity
 from particle import Particle
 
 
@@ -133,8 +133,26 @@ def collision(particle,target):
     if totalKE<=0:
         # Not enough energy for collision to do anything
         return [particle,target]
-    momenta = randomMomentumTriangle(totalKE,[prod.mass for prod in products])
 
+    # Determine multiplicity and add that number of sets of pi+,pi-,pi0 to the
+    # products
+    mult = chooseMultiplicity(particle.energy,totalKE)
+    setKEs = randomWithSum(mult+1,totalKE)
+
+    # Get momenta for first set of products
+    momenta = randomMomentumTriangle(setKEs[0],[prod.mass for prod in products])
+
+    # Get momenta for all additional pions from multiplicity
+    for i in range(mult):
+        additionalPions = [Particle("pi+",pos=particle.position),
+                           Particle("pi-",pos=particle.position),
+                           Particle("pi0",pos=particle.position)]
+        additionalMomenta = randomMomentumTriangle(setKEs[i+1],
+                            [prod.mass for prod in additionalPions])
+        products.extend(additionalPions)
+        momenta.extend(additionalMomenta)
+
+    # Assign the momenta to the particles
     for i,prod in enumerate(products):
         prod.momentum = momenta[i]
 

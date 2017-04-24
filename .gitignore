@@ -6,8 +6,5 @@
 # pycaches
 **/__pycache__/
 
-# pickle files
-*.pickle
-
-# plots
-*.png
+# data directories
+*data/

@@ -242,6 +242,6 @@ def drawMarker(particleType):
 
 
 if __name__ == '__main__':
-    proton = generatePrimary(energy=1000000)
+    proton = generatePrimary(energy=100000)
     mus = generateShower(proton,drawShower=True)
     print(len(mus),"muons reached the ground")

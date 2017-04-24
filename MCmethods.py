@@ -1,6 +1,6 @@
 """Functions used to generate random numbers for Monte Carlo"""
 from numpy.random import random_sample, normal
-from numpy import sqrt, pi, sin, cos, arccos, dot
+from numpy import sqrt, log, pi, sin, cos, arccos, dot
 
 
 def randomInRange(start,stop=None):
@@ -73,6 +73,21 @@ def randomMomentumTriangle(totalKE,masses):
         momenta.append(sign*rotate3D(unrotated,theta,phi))
 
     return momenta
+
+
+def chooseMultiplicity(labE,totalKE):
+    """Choose a pion multiplicity value based on energies"""
+    # Expected value of the multiplicity
+    expected = 6*log(labE)-24
+    # Maximum value of the multiplicity = KE/(3*pion mass)
+    maximum = totalKE / (139.57018+139.57018+134.9766)
+
+    # Choose from a gaussian distribution until multiplicity is a reasonable value
+    mult = -1
+    while mult<0 or mult>maximum:
+        mult = int(normal(loc=expected,scale=sqrt(expected)))
+
+    return mult
 
 
 def rotate3D(vector,theta=0,phi=0):
