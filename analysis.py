@@ -158,7 +158,7 @@ def plotNumberCounts(dataFileName,plotName=None):
         titleString += "E="
     titleString += info["energyValue"]
 
-    plt.hist(muonCounts,np.arange(-.5,muonCounts.max()+1.5,1))
+    plt.hist(muonCounts,np.linspace(0,muonCounts.max()))
     plt.title(titleString)
     plt.xlabel("Number of muons reaching the ground")
     plt.xlim([-.5,muonCounts.max()+.5])
@@ -328,15 +328,15 @@ def plotFirstInteractionHeight(num,minE=100,plotName=None):
 if __name__ == '__main__':
     # plotSingleShower(energy=1e9)
 
-    count = 10
-    for energy in [1e9]:
-        generateDataset(count,setE=energy)
+    # count = 10
+    # for energy in [1e12]:
+    #     generateDataset(count,setE=energy)
 
     # plotPrimaryEnergies(100000,minE=1000,plotName="100000_minE1GeV_primaries.png")
     # plotFirstInteractionHeight(10000,minE=1000,plotName="10000_minE1GeV_heights.png")
 
-    fileBase = "data/10_setE1PeV"
+    fileBase = "data/100_setE1PeV"
     plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
     plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
     plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")
-    plotMomentumDistribution(fileBase+".pickle",plotName=fileBase+"_momenta.png")
+    # plotMomentumDistribution(fileBase+".pickle",plotName=fileBase+"_momenta.png")

@@ -27,9 +27,10 @@ def generatePrimary(**kwargs):
         elif key=="height":
             height = val
         elif key=="minE":
-            ke = chooseEnergy(minimum=val)
-            if "energy" in kwargs.keys():
-                ke = kwargs["energy"]
+            if not("energy" in kwargs.keys()):
+                ke = 2e14
+                while ke>1e14:
+                    ke = chooseEnergy(minimum=val)
         elif key=="energy":
             ke = val
         elif key=="theta":
@@ -52,7 +53,9 @@ def generatePrimary(**kwargs):
         else:
             position = [0,0,height]
     if ke is None:
-        ke = chooseEnergy(minimum=1000)
+        ke = 2e14
+        while ke>1e14:
+            ke = chooseEnergy(minimum=1000)
     if theta is None or phi is None:
         if isotropic:
             theta, phi = isotropicAngles(downgoing=True)
