@@ -14,7 +14,7 @@ def getAtmosphericNucleus(position):
         return Particle("nitrogen",pos=position)
     elif atomSeed>=.01: #21% oxygen
         return Particle("oxygen",pos=position)
-    else:              #1% argon
+    else:               #1% argon
         return Particle("argon",pos=position)
 
 
