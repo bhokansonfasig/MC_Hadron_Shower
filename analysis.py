@@ -72,9 +72,12 @@ def plotHistogramLogLog(data,bars=False,nbins=50,power=1):
         xVals = hist[1][:-1] * 10**(binsize/2)
         yVals = hist[0]
         if power!=1:
+            yVals = list(hist[0])
             for i in range(len(yVals)):
                 yVals[i] *= xVals[i]**power
         plt.loglog(xVals,yVals)
+
+        return xVals, yVals
 
 
 
@@ -180,10 +183,11 @@ def plotLateralDistribution(dataFileName,rmax=None,plotName=None,setLimits=False
     muonDistances = []
     for i,muons in enumerate(showerResults):
         for muon in muons:
-            if muon.ke>50:# and muon.zenith<6*np.pi/180:
+            if muon.ke>50:
                 r = np.sqrt(muon.position[0]**2+muon.position[1]**2)
                 if rmax is None or r<rmax:
-                    muonDistances.append(r)
+                    if not(setLimits) or muon.zenith<6*np.pi/180:
+                        muonDistances.append(r)
 
     titleString = "Muon Lateral Distribution\nfor "+info["count"]
     if info["isotropic"]:
@@ -194,7 +198,8 @@ def plotLateralDistribution(dataFileName,rmax=None,plotName=None,setLimits=False
     else:
         titleString += "E="
     titleString += info["energyValue"]
-    titleString += ", zen<6°"
+    if setLimits:
+        titleString += ", zen<6°"
 
     nbins = 50
     logmin = np.log10(np.min(muonDistances))
@@ -252,10 +257,10 @@ def plotEnergyDistribution(dataFileName,plotName=None):
         titleString += "E="
     titleString += info["energyValue"]
 
-    plotHistogramLogLog(muonEnergies,bars=True)
+    plotHistogramLogLog(muonEnergies)
     plt.title(titleString)
     plt.xlabel("Muon energy (MeV)")
-    plt.ylabel("Flux (arbitrary units)")
+    plt.ylabel("Number of muons")
     if plotName is not None:
         if not(isinstance(plotName,str)):
             plotName = titleString.replace(" ","_")
@@ -263,7 +268,7 @@ def plotEnergyDistribution(dataFileName,plotName=None):
     plt.show()
 
 
-def plotMomentumDistribution(dataFileName,plotName=None):
+def plotMomentumDistribution(dataFileName,plotName=None,setLimits=False):
     """Generates histogram of momenta of muons reaching the ground"""
     pFile = open(dataFileName,'rb')
     showerResults = pickle.load(pFile)
@@ -273,8 +278,9 @@ def plotMomentumDistribution(dataFileName,plotName=None):
     muonMomenta = []
     for i,muons in enumerate(showerResults):
         for muon in muons:
-            if muon.ke>50 and muon.theta>11/12*np.pi:
-                muonMomenta.append(muon.Pmag)
+            if muon.ke>50:
+                if not(setLimits) or muon.theta>11/12*np.pi:
+                    muonMomenta.append(muon.Pmag)
 
     titleString = "Muon Momentum Distribution\nfor "+info["count"]
     if info["isotropic"]:
@@ -285,12 +291,25 @@ def plotMomentumDistribution(dataFileName,plotName=None):
     else:
         titleString += "E="
     titleString += info["energyValue"]
-    titleString += ", "+r"$\theta>\frac{11}{12}\pi$"
+    if setLimits:
+        titleString += ", "+r"$\theta>\frac{11}{12}\pi$"
 
-    plotHistogramLogLog(muonMomenta,power=2.7)
+    xVals, yVals = plotHistogramLogLog(muonMomenta,power=2.7)
     plt.title(titleString)
     plt.xlabel("Muon momentum (MeV)")
-    plt.ylabel(r"$p_\mu^{2.7} \times$"+"Flux (arbitrary units)")
+    plt.ylabel(r"$p_\mu^{2.7} \times dN/dp_\mu$"+" (arbitrary units)")
+    if setLimits:
+        plt.xlim([1e3,1e6])
+        ymin = 0
+        ymax = 0
+        for i in range(len(yVals)-2):
+            if ymax==0 and yVals[i]<yVals[i+1] and yVals[i+1]>yVals[i+2] \
+               and i>len(yVals)/3:
+                ymax = yVals[i+1]*1.5
+                break
+            if ymin==0 and xVals[i]>1000:
+                ymin = yVals[i]/1.5
+        plt.ylim([ymin,ymax])
     if plotName is not None:
         if not(isinstance(plotName,str)):
             plotName = titleString.replace(" ","_")
@@ -315,7 +334,7 @@ def plotPrimaryEnergies(num,minE=100,plotName=None):
     plotHistogramLogLog(primaryEnergies)#,power=2.7)
     plt.title(titleString)
     plt.xlabel("Proton energy (MeV)")
-    plt.ylabel("Flux (arbitrary units)")
+    plt.ylabel("Number of protons")
     # plt.ylabel(r"$E^{2.7} \times$"+"Flux (arbitrary units)")
     if plotName is not None:
         if not(isinstance(plotName,str)):
@@ -355,17 +374,19 @@ def plotFirstInteractionHeight(num,minE=100,plotName=None):
 
 
 if __name__ == '__main__':
-    # plotSingleShower(energy=1e9)
+    plotSingleShower(plotName="data/shower_1TeV.png",energy=1e6)
 
-    # count = 10
-    # for energy in [1e6]:
-    #     generateDataset(count,setE=energy)
+    # count = 10000
+    # for energy in [100,1e3,1e6]:
+    #     generateDataset(count,minE=energy)
 
     # plotPrimaryEnergies(100000,minE=1000,plotName="data/100000_minE1GeV_primaries.png")
     # plotFirstInteractionHeight(10000,minE=1000,plotName="10000_minE1GeV_heights.png")
 
-    fileBase = "data/100_setE1PeV"
+    # fileBase = "data/100_setE1PeV"
     # plotNumberCounts(fileBase+".pickle",plotName=fileBase+"_numcts.png")
-    plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist_zoomed.png",setLimits=True)
+    # plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist.png")
+    # plotLateralDistribution(fileBase+".pickle",plotName=fileBase+"_latdist_zoomed.png",setLimits=True)
     # plotEnergyDistribution(fileBase+".pickle",plotName=fileBase+"_energies.png")
     # plotMomentumDistribution(fileBase+".pickle",plotName=fileBase+"_momenta.png")
+    # plotMomentumDistribution(fileBase+".pickle",plotName=fileBase+"_momenta_zoomed.png",setLimits=True)
