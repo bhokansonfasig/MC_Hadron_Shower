@@ -1,1 +1,1 @@
-# MC_Hadron_Shower
+# Monte Carlo Hadron Shower
